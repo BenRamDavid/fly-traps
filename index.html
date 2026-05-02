@@ -992,10 +992,18 @@ async function saveStation() {
 function openAddTrap(stationId) {
   currentStationId = stationId;
   const station = db.stations.find(s => s.id === stationId);
-  const today = new Date().toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'}).replace('.','\/').slice(0,5);
   document.getElementById('at-station-name').textContent = '📍 ' + (station ? station.name : '');
-  document.getElementById('at-name').value = station ? `${station.name} ${today}` : '';
   document.getElementById('at-date').value = new Date().toISOString().split('T')[0];
+  // Update trap name when date changes
+  const dateInput = document.getElementById('at-date');
+  const nameInput = document.getElementById('at-name');
+  function updateTrapName() {
+    const d = dateInput.value ? new Date(dateInput.value) : new Date();
+    const dateStr = d.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'}).slice(0,5);
+    nameInput.value = station ? `${station.name} ${dateStr}` : dateStr;
+  }
+  updateTrapName();
+  dateInput.onchange = updateTrapName;
   formSev['at'] = 'low';
   // Reset UI
   document.querySelectorAll('#overlay-add-trap .sev-btn').forEach(b => b.className = 'sev-btn');
