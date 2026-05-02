@@ -2,1367 +2,1243 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>מלכודות זבובים — המושב</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🪰 מלכודות תימורים</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  :root {
-    --bg: #0f1a0f;
-    --surface: #162016;
-    --surface2: #1e2e1e;
-    --border: #2a3d2a;
-    --accent: #5cdb5c;
-    --accent2: #3aa83a;
-    --warn: #f0c040;
-    --danger: #e84040;
-    --text: #d4ecd4;
-    --muted: #7a9c7a;
-    --trap: #4ab8e8;
-    --volunteer: #c084fc;
-  }
+:root {
+  --bg: #0d1a0d;
+  --s1: #132013;
+  --s2: #1a2d1a;
+  --s3: #223322;
+  --border: #2d4a2d;
+  --accent: #4ddb4d;
+  --accent2: #39b539;
+  --warn: #f5c518;
+  --danger: #e63232;
+  --text: #cce8cc;
+  --muted: #6b8f6b;
+  --trap-color: #38b6e8;
+  --vol: #b57bee;
+  --inactive: #555;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* HEADER */
+.header {
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 1000;
+}
+.logo { font-size: 17px; font-weight: 900; color: var(--accent); }
+.logo span { color: var(--text); font-weight: 300; font-size: 14px; }
+.header-right { font-size: 11px; color: var(--muted); }
 
-  body {
-    font-family: 'Heebo', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* TABS */
+.tabs {
+  display: flex; background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 49px; z-index: 999;
+}
+.tab {
+  flex: 1; padding: 10px 4px; text-align: center;
+  font-size: 11px; font-weight: 500; color: var(--muted);
+  cursor: pointer; border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.tab .ti { font-size: 16px; display: block; margin-bottom: 1px; }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-  /* HEADER */
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-  }
-  .logo {
-    font-size: 18px;
-    font-weight: 900;
-    color: var(--accent);
-    letter-spacing: -0.5px;
-  }
-  .logo span { color: var(--text); font-weight: 300; }
+/* PAGES */
+.page { display: none; }
+.page.active { display: block; }
 
-  /* TABS */
-  .tabs {
-    display: flex;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab {
-    flex: 1;
-    min-width: 80px;
-    padding: 12px 8px;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--muted);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-  .tab.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
-  .tab-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+/* MAP */
+#map { height: calc(100vh - 97px); width: 100%; }
+.map-wrap { position: relative; }
+.layer-filters {
+  position: absolute; top: 10px; right: 10px; z-index: 800;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.lf-btn {
+  border: none; border-radius: 20px; padding: 6px 12px;
+  font-family: 'Heebo', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  transition: opacity 0.2s;
+}
+.lf-btn.off { opacity: 0.35; }
+.add-station-fab {
+  position: absolute; bottom: 20px; left: 16px; z-index: 800;
+  width: 52px; height: 52px; border-radius: 50%; border: none;
+  background: var(--accent); color: var(--bg);
+  font-size: 24px; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.15s;
+}
+.add-station-fab:active { transform: scale(0.92); }
 
-  /* PAGES */
-  .page { display: none; }
-  .page.active { display: block; }
+/* DASHBOARD */
+.dash-wrap { padding: 16px; padding-bottom: 80px; }
+.dash-title { font-size: 20px; font-weight: 900; color: var(--accent); margin-bottom: 14px; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.stat-card { background: var(--s1); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+.stat-card.full { grid-column: 1/-1; }
+.stat-num { font-size: 30px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+.stat-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-sub { font-size: 13px; color: var(--text); margin-top: 6px; }
+.bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.bar-lbl { width: 34px; font-size: 11px; color: var(--muted); text-align: right; flex-shrink: 0; }
+.bar-track { flex: 1; height: 7px; background: var(--s2); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+.bar-val { font-size: 11px; color: var(--muted); width: 20px; }
 
-  /* MAP PAGE */
-  #map {
-    height: calc(100vh - 130px);
-    width: 100%;
-  }
+/* STATIONS LIST */
+.stations-wrap { padding: 16px; padding-bottom: 80px; }
+.stations-title { font-size: 20px; font-weight: 900; color: var(--accent); margin-bottom: 14px; }
+.station-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: 14px; margin-bottom: 10px; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.station-card:active { border-color: var(--accent); }
+.station-header {
+  padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer;
+}
+.station-dot {
+  width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.3);
+}
+.station-info { flex: 1; min-width: 0; }
+.station-name { font-size: 15px; font-weight: 700; }
+.station-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.station-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.badge {
+  padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;
+}
+.badge-green { background: rgba(77,219,77,0.15); color: var(--accent); }
+.badge-yellow { background: rgba(245,197,24,0.15); color: var(--warn); }
+.badge-red { background: rgba(230,50,50,0.15); color: var(--danger); }
+.badge-blue { background: rgba(56,182,232,0.15); color: var(--trap-color); }
+.badge-grey { background: rgba(100,100,100,0.2); color: var(--muted); }
+.station-arrow { color: var(--muted); font-size: 18px; }
 
-  /* FAB */
-  .fab-group {
-    position: fixed;
-    bottom: 80px;
-    left: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    z-index: 999;
-  }
-  .fab {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    font-size: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-    transition: transform 0.15s;
-  }
-  .fab:active { transform: scale(0.92); }
-  .fab-main { background: var(--accent); color: var(--bg); font-size: 26px; width: 58px; height: 58px; }
-  .fab-report { background: var(--warn); color: #1a1000; }
-  .fab-volunteer { background: var(--volunteer); color: white; }
-  .fab-trap { background: var(--trap); color: white; }
-  .fab-label {
-    position: absolute;
-    right: 66px;
-    background: rgba(0,0,0,0.8);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    white-space: nowrap;
-    pointer-events: none;
-  }
+/* INSTRUCTIONS */
+.instructions-wrap { padding: 16px; padding-bottom: 80px; }
+.instr-title { font-size: 20px; font-weight: 900; color: var(--accent); margin-bottom: 16px; }
+.instr-section { background: var(--s1); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.instr-section-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.instr-step { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+.instr-num { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--bg); font-size: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.instr-text { font-size: 13px; line-height: 1.5; color: var(--text); }
+.instr-note { background: rgba(245,197,24,0.1); border: 1px solid rgba(245,197,24,0.3); border-radius: 8px; padding: 10px; font-size: 12px; color: var(--warn); margin-top: 8px; }
 
-  /* MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
-    z-index: 2000;
-    align-items: flex-end;
-    justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface);
-    border-radius: 20px 20px 0 0;
-    width: 100%;
-    max-width: 480px;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 20px 16px 40px;
-    animation: slideUp 0.3s ease;
-  }
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
-  .modal-handle {
-    width: 40px;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin: 0 auto 16px;
-  }
-  .modal-title {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+/* MODALS */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8); z-index: 2000;
+  align-items: flex-end; justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--s1); border-radius: 20px 20px 0 0;
+  width: 100%; max-width: 500px; max-height: 92vh;
+  overflow-y: auto; padding: 16px 16px 40px;
+  animation: slideUp 0.28s ease;
+}
+.modal-full {
+  background: var(--s1); border-radius: 20px 20px 0 0;
+  width: 100%; max-width: 500px; height: 92vh;
+  overflow-y: auto; padding: 16px 16px 40px;
+  animation: slideUp 0.28s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 14px; }
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.modal-close { margin-right: auto; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0 4px; }
 
-  /* FORM */
-  .form-group { margin-bottom: 14px; }
-  .form-label {
-    display: block;
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 6px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .form-input {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    color: var(--text);
-    font-family: 'Heebo', sans-serif;
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .form-input:focus { border-color: var(--accent); }
-  textarea.form-input { resize: vertical; min-height: 80px; }
+/* FORM */
+.fg { margin-bottom: 12px; }
+.fl { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.fi {
+  width: 100%; background: var(--s2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 11px 12px; color: var(--text);
+  font-family: 'Heebo', sans-serif; font-size: 14px; outline: none;
+  transition: border-color 0.2s;
+}
+.fi:focus { border-color: var(--accent); }
+textarea.fi { resize: vertical; min-height: 70px; }
+.sev-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.sev-btn {
+  padding: 9px 4px; border-radius: 10px; border: 2px solid var(--border);
+  background: var(--s2); color: var(--text);
+  font-family: 'Heebo', sans-serif; font-size: 12px; cursor: pointer;
+  text-align: center; transition: all 0.15s;
+}
+.sev-btn .si { font-size: 18px; display: block; margin-bottom: 3px; }
+.sev-btn.sel-low { border-color: var(--accent); background: rgba(77,219,77,0.12); color: var(--accent); }
+.sev-btn.sel-med { border-color: var(--warn); background: rgba(245,197,24,0.12); color: var(--warn); }
+.sev-btn.sel-high { border-color: var(--danger); background: rgba(230,50,50,0.12); color: var(--danger); }
+.sev-btn.sel-critical { border-color: var(--danger); background: rgba(230,50,50,0.18); color: var(--danger); }
 
-  /* SEVERITY BUTTONS */
-  .severity-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-  }
-  .sev-btn {
-    padding: 10px 4px;
-    border-radius: 10px;
-    border: 2px solid var(--border);
-    background: var(--surface2);
-    color: var(--text);
-    font-family: 'Heebo', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.15s;
-  }
-  .sev-btn .sev-icon { font-size: 20px; display: block; margin-bottom: 4px; }
-  .sev-btn.selected { border-color: currentColor; }
-  .sev-btn.low { color: var(--accent); }
-  .sev-btn.med { color: var(--warn); }
-  .sev-btn.high { color: var(--danger); }
-  .sev-btn.low.selected { background: rgba(92,219,92,0.15); }
-  .sev-btn.med.selected { background: rgba(240,192,64,0.15); }
-  .sev-btn.high.selected { background: rgba(232,64,64,0.15); }
+.loc-btns { display: flex; gap: 8px; }
+.loc-btn {
+  flex: 1; padding: 10px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--s2);
+  color: var(--text); font-family: 'Heebo', sans-serif;
+  font-size: 12px; cursor: pointer; text-align: center; transition: all 0.15s;
+}
+.loc-btn.ok { background: rgba(77,219,77,0.12); border-color: var(--accent); color: var(--accent); }
+.loc-status { font-size: 11px; color: var(--muted); margin-top: 5px; min-height: 16px; }
+.loc-status.ok { color: var(--accent); }
+.loc-status.err { color: var(--danger); }
 
-  /* LOCATION BUTTONS */
-  .loc-btns { display: flex; gap: 8px; }
-  .loc-btn {
-    flex: 1;
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text);
-    font-family: 'Heebo', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.15s;
-  }
-  .loc-btn.active {
-    background: rgba(92,219,92,0.15);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .loc-status {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 6px;
-    min-height: 18px;
-  }
-  .loc-status.ok { color: var(--accent); }
-  .loc-status.err { color: var(--danger); }
+.pin-wrap { position: relative; margin-top: 8px; }
+.pin-map-el { height: 250px; border-radius: 10px; border: 2px solid var(--border); }
+.pin-crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -65%); pointer-events: none; z-index: 900; font-size: 32px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7)); }
+.pin-confirm { width: 100%; padding: 11px; border-radius: 10px; border: none; background: var(--accent); color: var(--bg); font-family: 'Heebo', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 7px; }
 
-  /* PHOTO UPLOAD */
-  .photo-upload {
-    border: 2px dashed var(--border);
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s;
-    position: relative;
-  }
-  .photo-upload:hover { border-color: var(--accent); }
-  .photo-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .photo-preview {
-    width: 100%;
-    max-height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-top: 10px;
-    display: none;
-  }
+.photo-area {
+  border: 2px dashed var(--border); border-radius: 10px;
+  padding: 18px; text-align: center; cursor: pointer;
+  position: relative; transition: border-color 0.2s;
+}
+.photo-area:hover { border-color: var(--accent); }
+.photo-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.photo-preview { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; margin-top: 8px; display: none; }
 
-  /* SUBMIT BTN */
-  .btn-submit {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    border: none;
-    font-family: 'Heebo', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 16px;
-    transition: all 0.15s;
-  }
-  .btn-submit:active { transform: scale(0.98); }
-  .btn-submit.green { background: var(--accent); color: var(--bg); }
-  .btn-submit.yellow { background: var(--warn); color: #1a1000; }
-  .btn-submit.purple { background: var(--volunteer); color: white; }
-  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn { width: 100%; padding: 13px; border-radius: 12px; border: none; font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: all 0.15s; }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-green { background: var(--accent); color: var(--bg); }
+.btn-yellow { background: var(--warn); color: #1a1000; }
+.btn-red { background: var(--danger); color: white; }
+.btn-grey { background: var(--s2); color: var(--text); border: 1px solid var(--border); }
+.btn-blue { background: var(--trap-color); color: var(--bg); }
 
-  /* DASHBOARD */
-  #page-dashboard {
-    padding: 16px;
-    padding-bottom: 80px;
-  }
-  .dash-title {
-    font-size: 22px;
-    font-weight: 900;
-    margin-bottom: 16px;
-    color: var(--accent);
-  }
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px;
-  }
-  .stat-card.full { grid-column: 1 / -1; }
-  .stat-num {
-    font-size: 32px;
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-  .stat-label { font-size: 12px; color: var(--muted); }
-  .stat-sub { font-size: 13px; color: var(--text); margin-top: 6px; }
+/* STATION MINI SITE */
+.station-site { padding: 0 16px 80px; }
+.station-site-header {
+  padding: 16px 0 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+.ss-name { font-size: 20px; font-weight: 900; }
+.ss-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.ss-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.ss-action-btn {
+  padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border);
+  background: var(--s2); color: var(--text);
+  font-family: 'Heebo', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.ss-action-btn:active { opacity: 0.7; }
 
-  /* TIMELINE */
-  #page-timeline {
-    padding: 16px;
-    padding-bottom: 80px;
-  }
-  .timeline-title {
-    font-size: 22px;
-    font-weight: 900;
-    margin-bottom: 16px;
-    color: var(--accent);
-  }
-  .timeline-filter {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding-bottom: 4px;
-  }
-  .tf-btn {
-    padding: 6px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--muted);
-    font-size: 13px;
-    cursor: pointer;
-    white-space: nowrap;
-    font-family: 'Heebo', sans-serif;
-  }
-  .tf-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+.traps-section-title {
+  font-size: 13px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin: 16px 0 10px; display: flex; align-items: center; gap: 8px;
+}
+.trap-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: 12px; margin-bottom: 10px; overflow: hidden;
+}
+.trap-card-header {
+  padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer;
+}
+.trap-status-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.trap-info { flex: 1; min-width: 0; }
+.trap-name { font-size: 14px; font-weight: 700; }
+.trap-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.trap-expand { color: var(--muted); font-size: 16px; transition: transform 0.2s; }
+.trap-expand.open { transform: rotate(180deg); }
 
-  .timeline-item {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px;
-    animation: fadeIn 0.3s ease;
-  }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  .ti-dot {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-  }
-  .ti-content { flex: 1; min-width: 0; }
-  .ti-type { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .ti-text { font-size: 14px; font-weight: 500; margin: 2px 0; }
-  .ti-meta { font-size: 12px; color: var(--muted); }
-  .ti-img {
-    width: 64px;
-    height: 64px;
-    border-radius: 8px;
-    object-fit: cover;
-    flex-shrink: 0;
-  }
+.trap-body { display: none; border-top: 1px solid var(--border); padding: 12px; }
+.trap-body.open { display: block; }
 
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--muted);
-  }
-  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.timeline-item {
+  display: flex; gap: 10px; margin-bottom: 10px;
+  padding: 10px; background: var(--s2); border-radius: 10px;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+.tl-icon { font-size: 20px; flex-shrink: 0; }
+.tl-content { flex: 1; min-width: 0; }
+.tl-sev { font-size: 12px; font-weight: 700; }
+.tl-note { font-size: 12px; color: var(--text); margin-top: 2px; }
+.tl-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.tl-img { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
 
-  /* MAP PIN PICKER MODAL */
-  [id$="-pin-map"] {
-    height: 280px;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-top: 10px;
-    border: 2px solid var(--border);
-  }
-  .pin-map-wrap {
-    position: relative;
-    margin-top: 10px;
-  }
-  .pin-crosshair {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-  }
-  .pin-crosshair::before {
-    content: '📍';
-    font-size: 32px;
-    margin-bottom: -4px;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-  }
-  .pin-crosshair-ring {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(92,219,92,0.6);
-    border: 2px solid var(--accent);
-  }
-  .pin-confirm-btn {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    background: var(--accent);
-    color: var(--bg);
-    font-family: 'Heebo', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 8px;
-    display: none;
-  }
-  .pin-confirm-btn.visible { display: block; }
-  .pin-instruction {
-    font-size: 13px;
-    color: var(--warn);
-    margin-top: 6px;
-    text-align: center;
-  }
+.add-update-btn {
+  width: 100%; padding: 10px; border-radius: 10px;
+  border: 1px dashed var(--border); background: transparent;
+  color: var(--accent); font-family: 'Heebo', sans-serif;
+  font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 6px;
+  transition: all 0.15s;
+}
+.add-update-btn:active { background: rgba(77,219,77,0.08); }
 
-  /* TOAST */
-  .toast {
-    position: fixed;
-    bottom: 90px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 12px 20px;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: 500;
-    opacity: 0;
-    transition: all 0.3s;
-    z-index: 3000;
-    white-space: nowrap;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.add-trap-btn {
+  width: 100%; padding: 12px; border-radius: 12px;
+  border: 2px dashed var(--border); background: transparent;
+  color: var(--trap-color); font-family: 'Heebo', sans-serif;
+  font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 4px;
+  transition: all 0.15s;
+}
+.add-trap-btn:active { background: rgba(56,182,232,0.08); }
 
-  /* LOADING */
-  .loading {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    vertical-align: middle;
-    margin-left: 6px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+.station-status-bar {
+  display: flex; gap: 8px; padding: 10px 12px;
+  background: var(--s2); border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+}
+.status-pill {
+  padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;
+  white-space: nowrap; flex-shrink: 0;
+}
 
-  /* LEGEND */
-  .map-legend {
-    position: absolute;
-    bottom: 20px;
-    right: 10px;
-    background: rgba(15,26,15,0.9);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    z-index: 500;
-    font-size: 12px;
-  }
-  .legend-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+/* TOAST */
+.toast {
+  position: fixed; bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--s2); border: 1px solid var(--border);
+  color: var(--text); padding: 10px 18px; border-radius: 28px;
+  font-size: 13px; font-weight: 500; opacity: 0;
+  transition: all 0.28s; z-index: 5000; white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  .badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 700;
-  }
-  .badge-green { background: rgba(92,219,92,0.2); color: var(--accent); }
-  .badge-yellow { background: rgba(240,192,64,0.2); color: var(--warn); }
-  .badge-red { background: rgba(232,64,64,0.2); color: var(--danger); }
-  .badge-blue { background: rgba(74,184,232,0.2); color: var(--trap); }
-  .badge-purple { background: rgba(192,132,252,0.2); color: var(--volunteer); }
+.loading-spin {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.25); border-top-color: white;
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+  vertical-align: middle; margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  .section-header {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 20px 0 10px;
-  }
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+.empty-icon { font-size: 42px; margin-bottom: 10px; }
 
-  .bar-chart { margin-top: 8px; }
-  .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .bar-label { width: 40px; font-size: 12px; color: var(--muted); text-align: right; flex-shrink: 0; }
-  .bar-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
-  .bar-val { font-size: 12px; color: var(--muted); width: 24px; }
+.divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+.status-inactive { opacity: 0.5; }
+
+/* Status colors */
+.c-green { color: var(--accent); }
+.c-yellow { color: var(--warn); }
+.c-red { color: var(--danger); }
+.c-blue { color: var(--trap-color); }
+.c-muted { color: var(--muted); }
+
+.share-btns { display: flex; gap: 8px; }
+.share-btn {
+  flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--s2); color: var(--text);
+  font-family: 'Heebo', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; text-align: center; text-decoration: none;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">🪰 מלכודות<span> המושב</span></div>
-  <div id="last-update" style="font-size:11px;color:var(--muted)"></div>
-</header>
+<div class="header">
+  <div class="logo">🪰 מלכודות <span>תימורים</span></div>
+  <div class="header-right" id="last-sync">טוען...</div>
+</div>
 
 <div class="tabs">
-  <div class="tab active" onclick="showPage('map')">
-    <span class="tab-icon">🗺️</span>מפה
-  </div>
-  <div class="tab" onclick="showPage('dashboard')">
-    <span class="tab-icon">📊</span>דאשבורד
-  </div>
-  <div class="tab" onclick="showPage('timeline')">
-    <span class="tab-icon">📋</span>עדכונים
+  <div class="tab active" onclick="showTab('map',this)"><span class="ti">🗺️</span>מפה</div>
+  <div class="tab" onclick="showTab('stations',this)"><span class="ti">📍</span>עמדות</div>
+  <div class="tab" onclick="showTab('dashboard',this)"><span class="ti">📊</span>דאשבורד</div>
+  <div class="tab" onclick="showTab('instructions',this)"><span class="ti">📖</span>הוראות</div>
+</div>
+
+<!-- MAP -->
+<div id="tab-map" class="page active">
+  <div class="map-wrap">
+    <div id="map"></div>
+    <div class="layer-filters">
+      <button class="lf-btn" style="background:rgba(56,182,232,0.9);color:#0d1a0d" onclick="toggleLayer('stations',this)">🪤 עמדות</button>
+      <button class="lf-btn" style="background:rgba(230,50,50,0.9);color:white" onclick="toggleLayer('reports',this)">🚨 מפגעים</button>
+      <button class="lf-btn" style="background:rgba(77,219,77,0.9);color:#0d1a0d" onclick="toggleLayer('volunteers',this)">🙋 מתנדבים</button>
+    </div>
+    <button class="add-station-fab" onclick="openAddStation()" title="הוסף עמדה">➕</button>
   </div>
 </div>
 
-<!-- MAP PAGE -->
-<div id="page-map" class="page active" style="position:relative">
-  <div id="map"></div>
-  <!-- Layer filters -->
-  <div style="position:absolute;top:10px;right:10px;z-index:900;display:flex;flex-direction:column;gap:6px">
-    <button class="layer-btn active" data-layer="trap" onclick="toggleLayer('trap',this)" style="background:rgba(74,184,232,0.92);color:#0f1a0f;border:none;border-radius:20px;padding:7px 14px;font-family:Heebo,sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4)">🪤 מלכודות</button>
-    <button class="layer-btn active" data-layer="nuisance" onclick="toggleLayer('nuisance',this)" style="background:rgba(232,64,64,0.92);color:white;border:none;border-radius:20px;padding:7px 14px;font-family:Heebo,sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4)">🚨 מפגעים</button>
-    <button class="layer-btn active" data-layer="volunteer" onclick="toggleLayer('volunteer',this)" style="background:rgba(192,132,252,0.92);color:white;border:none;border-radius:20px;padding:7px 14px;font-family:Heebo,sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4)">🙋 מתנדבים</button>
+<!-- STATIONS LIST -->
+<div id="tab-stations" class="page">
+  <div class="stations-wrap">
+    <div class="stations-title">📍 עמדות מלכודות</div>
+    <div id="stations-list"></div>
   </div>
 </div>
 
-<!-- SPOT DASHBOARD MODAL -->
-<div class="modal-overlay" id="modal-spot">
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="page">
+  <div class="dash-wrap">
+    <div class="dash-title">📊 דאשבורד מושב</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num c-blue" id="d-stations">—</div><div class="stat-lbl">עמדות פעילות</div></div>
+      <div class="stat-card"><div class="stat-num c-green" id="d-traps">—</div><div class="stat-lbl">מלכודות פעילות</div></div>
+      <div class="stat-card"><div class="stat-num c-red" id="d-urgent">—</div><div class="stat-lbl">דורשות פינוי דחוף</div></div>
+      <div class="stat-card"><div class="stat-num c-yellow" id="d-soon">—</div><div class="stat-lbl">פינוי בקרוב</div></div>
+      <div class="stat-card full"><div class="stat-lbl">🔥 עמדה הכי עמוסה</div><div class="stat-sub" id="d-hotspot">טוען...</div></div>
+      <div class="stat-card full"><div class="stat-lbl">📅 עדכונים לפי חודש</div><div id="d-chart" style="margin-top:8px"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INSTRUCTIONS -->
+<div id="tab-instructions" class="page">
+  <div class="instructions-wrap">
+    <div class="instr-title">📖 הוראות שימוש</div>
+
+    <div class="instr-section">
+      <div class="instr-section-title">🗺️ הוספת עמדה חדשה</div>
+      <div class="instr-step"><div class="instr-num">1</div><div class="instr-text">לחץ על כפתור ➕ בפינת המפה</div></div>
+      <div class="instr-step"><div class="instr-num">2</div><div class="instr-text">בחר מיקום — GPS אוטומטי או סמן על המפה</div></div>
+      <div class="instr-step"><div class="instr-num">3</div><div class="instr-text">תן שם לעמדה (לדוגמה: "מעבר הרחבה למכולת")</div></div>
+      <div class="instr-step"><div class="instr-num">4</div><div class="instr-text">לחץ שמור — העמדה תופיע על המפה</div></div>
+    </div>
+
+    <div class="instr-section">
+      <div class="instr-section-title">🪤 הוספת מלכודת לעמדה</div>
+      <div class="instr-step"><div class="instr-num">1</div><div class="instr-text">לחץ על עמדה במפה או ברשימת העמדות</div></div>
+      <div class="instr-step"><div class="instr-num">2</div><div class="instr-text">לחץ "הוסף מלכודת חדשה"</div></div>
+      <div class="instr-step"><div class="instr-num">3</div><div class="instr-text">השם נוצר אוטומטית: שם עמדה + תאריך היום</div></div>
+      <div class="instr-step"><div class="instr-num">4</div><div class="instr-text">הכנס את שמך — חובה</div></div>
+    </div>
+
+    <div class="instr-section">
+      <div class="instr-section-title">📸 עדכון מלכודת קיימת</div>
+      <div class="instr-step"><div class="instr-num">1</div><div class="instr-text">לחץ על שם המלכודת לפתיחת ציר הזמן</div></div>
+      <div class="instr-step"><div class="instr-num">2</div><div class="instr-text">לחץ "הוסף עדכון"</div></div>
+      <div class="instr-step"><div class="instr-num">3</div><div class="instr-text">בחר סטטוס: 🟢 ריקה / 🟡 קצת / 🔴 מלאה / ✅ הושלכה</div></div>
+      <div class="instr-step"><div class="instr-num">4</div><div class="instr-text">הוסף תמונה ושמך — לחץ שלח</div></div>
+    </div>
+
+    <div class="instr-section">
+      <div class="instr-section-title">📅 לוח פינויים</div>
+      <div class="instr-note">⚠️ פינוי זבל: ימי שני וחמישי — לפנות מלכודות ערב לפני (ראשון ורביעי בלילה)</div>
+      <div class="instr-step" style="margin-top:10px"><div class="instr-num">!</div><div class="instr-text">מלכודת מעל 14 יום = 🔴 דחוף בדאשבורד</div></div>
+      <div class="instr-step"><div class="instr-num">!</div><div class="instr-text">מלכודת 10-14 יום = 🟡 קרוב לפינוי</div></div>
+    </div>
+
+    <div class="instr-section">
+      <div class="instr-section-title">🚨 דיווח מפגע / שקית</div>
+      <div class="instr-step"><div class="instr-num">1</div><div class="instr-text">לחץ על כפתור 🚨 במפה</div></div>
+      <div class="instr-step"><div class="instr-num">2</div><div class="instr-text">בחר סוג: זבובים באזור / שקית מלאה</div></div>
+      <div class="instr-step"><div class="instr-num">3</div><div class="instr-text">סמן מיקום ורמת חומרה</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- STATION MINI SITE OVERLAY -->
+<div class="overlay" id="overlay-station">
+  <div class="modal-full">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <button class="modal-close" onclick="closeOverlay('station')">✕</button>
+      <div class="modal-title" style="margin:0" id="ss-title">עמדה</div>
+    </div>
+    <div id="station-site-content"></div>
+  </div>
+</div>
+
+<!-- ADD STATION MODAL -->
+<div class="overlay" id="overlay-add-station">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="spot-title">📍 פרטי נקודה</div>
-    <div id="spot-content"></div>
-    <button class="btn-submit" style="background:var(--surface2);margin-top:12px" onclick="closeModal('spot')">סגור</button>
-  </div>
-</div>
+    <div class="modal-title">📍 עמדה חדשה</div>
 
-<!-- DASHBOARD PAGE -->
-<div id="page-dashboard" class="page">
-  <div class="dash-title">📊 דאשבורד מושב</div>
-  <div class="stats-grid" id="stats-grid">
-    <div class="stat-card">
-      <div class="stat-num" style="color:var(--trap)" id="stat-traps">—</div>
-      <div class="stat-label">מלכודות פעילות</div>
+    <div class="fg">
+      <label class="fl">שם העמדה</label>
+      <input class="fi" id="ns-name" placeholder='לדוגמה: מעבר הרחבה למכולת'>
     </div>
-    <div class="stat-card">
-      <div class="stat-num" style="color:var(--danger)" id="stat-reports">—</div>
-      <div class="stat-label">דיווחי תושבים</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" style="color:var(--warn)" id="stat-full">—</div>
-      <div class="stat-label">מלכודות מלאות</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" style="color:var(--volunteer)" id="stat-volunteers">—</div>
-      <div class="stat-label">מתנדבים</div>
-    </div>
-    <div class="stat-card full">
-      <div class="stat-label">🔥 אזור הכי בעייתי</div>
-      <div class="stat-sub" id="stat-hotspot">טוען...</div>
-    </div>
-    <div class="stat-card full">
-      <div class="stat-label">📅 דיווחים לפי חודש</div>
-      <div class="bar-chart" id="month-chart"></div>
-    </div>
-  </div>
-</div>
 
-<!-- TIMELINE PAGE -->
-<div id="page-timeline" class="page">
-  <div class="timeline-title">📋 יומן עדכונים</div>
-  <div class="timeline-filter">
-    <div class="tf-btn active" onclick="filterTimeline('all', this)">הכל</div>
-    <div class="tf-btn" onclick="filterTimeline('trap', this)">🪤 מלכודות</div>
-    <div class="tf-btn" onclick="filterTimeline('report', this)">🚨 דיווחים</div>
-    <div class="tf-btn" onclick="filterTimeline('bag', this)">🛍️ שקיות</div>
-    <div class="tf-btn" onclick="filterTimeline('volunteer', this)">🙋 התנדבות</div>
-  </div>
-  <div id="timeline-list"></div>
-</div>
-
-<!-- FAB BUTTONS -->
-<div class="fab-group" id="fab-group">
-  <div style="position:relative">
-    <button class="fab fab-trap" onclick="openModal('trap')" title="הוסף מלכודת">🪤</button>
-  </div>
-  <div style="position:relative">
-    <button class="fab fab-report" onclick="openModal('report')" title="דווח זבובים">🚨</button>
-  </div>
-  <div style="position:relative">
-    <button class="fab fab-report" style="background:#e87840" onclick="openModal('bag')" title="דווח שקית מלאה">🛍️</button>
-  </div>
-  <div style="position:relative">
-    <button class="fab fab-volunteer" onclick="openModal('volunteer')" title="התנדב">🙋</button>
-  </div>
-</div>
-
-<!-- TRAP MODAL -->
-<div class="modal-overlay" id="modal-trap">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">🪤 עדכון מלכודת</div>
-    
-    <div class="form-group">
-      <label class="form-label">מיקום</label>
+    <div class="fg">
+      <label class="fl">מיקום</label>
       <div class="loc-btns">
-        <button class="loc-btn" id="trap-gps-btn" onclick="getGPS('trap')">📍 GPS אוטומטי</button>
-        <button class="loc-btn" id="trap-map-btn" onclick="toggleMapPicker('trap')">🗺️ סמן על מפה</button>
+        <button class="loc-btn" id="ns-gps-btn" onclick="getGPS('ns')">📍 GPS שלי</button>
+        <button class="loc-btn" id="ns-map-btn" onclick="togglePinMap('ns')">🗺️ סמן על מפה</button>
       </div>
-      <div class="loc-status" id="trap-loc-status">לא נבחר מיקום</div>
-      <div id="trap-pin-map-wrap" style="display:none">
-        <div class="pin-map-wrap" style="position:relative">
-          <div id="trap-pin-map"></div>
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none;z-index:1000;font-size:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6))">📍</div>
+      <div class="loc-status" id="ns-loc-status">לא נבחר מיקום</div>
+      <div id="ns-pin-wrap" style="display:none">
+        <div class="pin-wrap">
+          <div id="ns-pin-map" class="pin-map-el"></div>
+          <div class="pin-crosshair">📍</div>
         </div>
-        <div class="pin-instruction">🗺️ גלול את המפה למיקום הנכון ולחץ אשר</div>
-        <button onclick="confirmCenter('trap')" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent);color:var(--bg);font-family:Heebo,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">✅ אשר מיקום זה</button>
+        <div style="font-size:11px;color:var(--warn);text-align:center;margin-top:5px">גלול את המפה למיקום הנכון</div>
+        <button class="pin-confirm" onclick="confirmCenter('ns')">✅ אשר מיקום זה</button>
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">עומס מלכודת</label>
-      <div class="severity-group">
-        <button class="sev-btn low" onclick="setSev('trap','low',this)">
-          <span class="sev-icon">🟢</span>ריקה
-        </button>
-        <button class="sev-btn med" onclick="setSev('trap','med',this)">
-          <span class="sev-icon">🟡</span>קצת
-        </button>
-        <button class="sev-btn high" onclick="setSev('trap','high',this)">
-          <span class="sev-icon">🔴</span>מלאה
-        </button>
+    <div class="fg">
+      <label class="fl">שמך</label>
+      <input class="fi" id="ns-reporter" placeholder="ישראל ישראלי">
+    </div>
+
+    <button class="btn btn-green" onclick="saveStation()" id="ns-save-btn">📍 שמור עמדה</button>
+    <button class="btn btn-grey" onclick="closeOverlay('add-station')">ביטול</button>
+  </div>
+</div>
+
+<!-- ADD TRAP MODAL -->
+<div class="overlay" id="overlay-add-trap">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🪤 מלכודת חדשה</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px" id="at-station-name"></div>
+
+    <div class="fg">
+      <label class="fl">שם המלכודת</label>
+      <input class="fi" id="at-name" placeholder="נוצר אוטומטית">
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">ניתן לשנות — ברירת מחדל: שם עמדה + תאריך</div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">תאריך הצבה</label>
+      <input type="date" class="fi" id="at-date">
+    </div>
+
+    <div class="fg">
+      <label class="fl">סטטוס התחלתי</label>
+      <div class="sev-group">
+        <button class="sev-btn" onclick="setSev('at','low',this)"><span class="si">🟢</span>ריקה</button>
+        <button class="sev-btn" onclick="setSev('at','med',this)"><span class="si">🟡</span>קצת</button>
+        <button class="sev-btn" onclick="setSev('at','high',this)"><span class="si">🔴</span>מלאה</button>
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">תמונה</label>
-      <div class="photo-upload" id="trap-photo-area">
-        <input type="file" accept="image/*" capture="environment" onchange="handlePhoto('trap',this)">
-        <div id="trap-photo-placeholder">📷 צלם או העלה תמונה</div>
-        <img id="trap-photo-preview" class="photo-preview">
+    <div class="fg">
+      <label class="fl">תמונה (אופציונלי)</label>
+      <div class="photo-area" id="at-photo-area">
+        <input type="file" accept="image/*" capture="environment" onchange="handlePhoto('at',this)">
+        <div id="at-photo-ph">📷 צלם או העלה</div>
+        <img id="at-photo-prev" class="photo-preview">
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">מספר מלכודת (אופציונלי)</label>
-      <input type="text" class="form-input" id="trap-id-input" placeholder="לדוגמה: מלכודת 3">
+    <div class="fg">
+      <label class="fl">שמך (חובה)</label>
+      <input class="fi" id="at-reporter" placeholder="ישראל ישראלי">
     </div>
 
-    <div class="form-group">
-      <label class="form-label">תאריך הצבה / עדכון</label>
-      <input type="date" class="form-input" id="trap-date-input">
-      <div style="font-size:11px;color:var(--muted);margin-top:4px">ריק = היום אוטומטית</div>
+    <button class="btn btn-blue" onclick="saveTrap()" id="at-save-btn">🪤 הוסף מלכודת</button>
+    <button class="btn btn-grey" onclick="closeOverlay('add-trap')">ביטול</button>
+  </div>
+</div>
+
+<!-- ADD UPDATE MODAL -->
+<div class="overlay" id="overlay-add-update">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📸 עדכון מלכודת</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px" id="au-trap-name"></div>
+
+    <div class="fg">
+      <label class="fl">סטטוס</label>
+      <div class="sev-group" style="grid-template-columns:repeat(2,1fr)">
+        <button class="sev-btn" onclick="setSev('au','low',this)"><span class="si">🟢</span>ריקה</button>
+        <button class="sev-btn" onclick="setSev('au','med',this)"><span class="si">🟡</span>קצת מלאה</button>
+        <button class="sev-btn" onclick="setSev('au','high',this)"><span class="si">🔴</span>מלאה</button>
+        <button class="sev-btn" onclick="setSev('au','done',this)"><span class="si">✅</span>הושלכה לפח</button>
+      </div>
     </div>
 
-    <button class="btn-submit green" onclick="submitForm('trap')" id="trap-submit-btn">✅ שמור עדכון</button>
-    <button class="btn-submit" style="background:var(--surface2);margin-top:8px" onclick="closeModal('trap')">ביטול</button>
+    <div class="fg">
+      <label class="fl">תמונה (אופציונלי)</label>
+      <div class="photo-area">
+        <input type="file" accept="image/*" capture="environment" onchange="handlePhoto('au',this)">
+        <div id="au-photo-ph">📷 צלם או העלה</div>
+        <img id="au-photo-prev" class="photo-preview">
+      </div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">הערה (אופציונלי)</label>
+      <textarea class="fi" id="au-note" placeholder="תאר את המצב..."></textarea>
+    </div>
+
+    <div class="fg">
+      <label class="fl">שמך (חובה)</label>
+      <input class="fi" id="au-reporter" placeholder="ישראל ישראלי">
+    </div>
+
+    <button class="btn btn-green" onclick="saveUpdate()" id="au-save-btn">✅ שלח עדכון</button>
+    <button class="btn btn-grey" onclick="closeOverlay('add-update')">ביטול</button>
   </div>
 </div>
 
 <!-- REPORT MODAL -->
-<div class="modal-overlay" id="modal-report">
+<div class="overlay" id="overlay-report">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">🚨 דיווח זבובים</div>
+    <div class="modal-title">🚨 דיווח מפגע</div>
 
-    <div class="form-group">
-      <label class="form-label">מיקום</label>
+    <div class="fg">
+      <label class="fl">סוג דיווח</label>
+      <div class="sev-group" style="grid-template-columns:1fr 1fr">
+        <button class="sev-btn" onclick="setSev('rep','flies',this)"><span class="si">🪰</span>זבובים באזור</button>
+        <button class="sev-btn" onclick="setSev('rep','bag',this)"><span class="si">🛍️</span>שקית מלאה</button>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">חומרה</label>
+      <div class="sev-group">
+        <button class="sev-btn" onclick="setSev2('rep','low',this)"><span class="si">😐</span>רגיל</button>
+        <button class="sev-btn" onclick="setSev2('rep','med',this)"><span class="si">😤</span>מציק</button>
+        <button class="sev-btn" onclick="setSev2('rep','high',this)"><span class="si">🤯</span>בלתי נסבל</button>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">מיקום</label>
       <div class="loc-btns">
-        <button class="loc-btn" id="report-gps-btn" onclick="getGPS('report')">📍 מיקום שלי</button>
-        <button class="loc-btn" id="report-map-btn" onclick="toggleMapPicker('report')">🗺️ סמן על מפה</button>
+        <button class="loc-btn" id="rep-gps-btn" onclick="getGPS('rep')">📍 מיקום שלי</button>
+        <button class="loc-btn" id="rep-map-btn" onclick="togglePinMap('rep')">🗺️ סמן על מפה</button>
       </div>
-      <div class="loc-status" id="report-loc-status">לא נבחר מיקום</div>
-      <div id="report-pin-map-wrap" style="display:none">
-        <div class="pin-map-wrap" style="position:relative">
-          <div id="report-pin-map"></div>
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none;z-index:1000;font-size:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6))">📍</div>
+      <div class="loc-status" id="rep-loc-status">לא נבחר מיקום</div>
+      <div id="rep-pin-wrap" style="display:none">
+        <div class="pin-wrap">
+          <div id="rep-pin-map" class="pin-map-el"></div>
+          <div class="pin-crosshair">📍</div>
         </div>
-        <div class="pin-instruction">🗺️ גלול את המפה למיקום הנכון ולחץ אשר</div>
-        <button onclick="confirmCenter('report')" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent);color:var(--bg);font-family:Heebo,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">✅ אשר מיקום זה</button>
+        <div style="font-size:11px;color:var(--warn);text-align:center;margin-top:5px">גלול את המפה למיקום הנכון</div>
+        <button class="pin-confirm" onclick="confirmCenter('rep')">✅ אשר מיקום זה</button>
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">דרגת מטרד</label>
-      <div class="severity-group">
-        <button class="sev-btn low" onclick="setSev('report','low',this)">
-          <span class="sev-icon">😐</span>רגיל
-        </button>
-        <button class="sev-btn med" onclick="setSev('report','med',this)">
-          <span class="sev-icon">😤</span>מציק
-        </button>
-        <button class="sev-btn high" onclick="setSev('report','high',this)">
-          <span class="sev-icon">🤯</span>בלתי נסבל
-        </button>
+    <div class="fg">
+      <label class="fl">תמונה (אופציונלי)</label>
+      <div class="photo-area">
+        <input type="file" accept="image/*" capture="environment" onchange="handlePhoto('rep',this)">
+        <div id="rep-photo-ph">📷 צלם או העלה</div>
+        <img id="rep-photo-prev" class="photo-preview">
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">תמונה (אופציונלי)</label>
-      <div class="photo-upload">
-        <input type="file" accept="image/*" capture="environment" onchange="handlePhoto('report',this)">
-        <div id="report-photo-placeholder">📷 צלם או העלה תמונה</div>
-        <img id="report-photo-preview" class="photo-preview">
-      </div>
+    <div class="fg">
+      <label class="fl">הערה (אופציונלי)</label>
+      <textarea class="fi" id="rep-note" placeholder="תאר את הבעיה..."></textarea>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">הערה (אופציונלי)</label>
-      <textarea class="form-input" id="report-note" placeholder="תאר את הבעיה..."></textarea>
+    <div class="fg">
+      <label class="fl">שמך (חובה)</label>
+      <input class="fi" id="rep-reporter" placeholder="ישראל ישראלי">
     </div>
 
-    <div class="form-group">
-      <label class="form-label">שמך (אופציונלי)</label>
-      <input type="text" class="form-input" id="report-name" placeholder="ישראל ישראלי">
-    </div>
-
-    <button class="btn-submit yellow" onclick="submitForm('report')" id="report-submit-btn">🚨 שלח דיווח</button>
-    <button class="btn-submit" style="background:var(--surface2);margin-top:8px" onclick="closeModal('report')">ביטול</button>
+    <button class="btn btn-yellow" onclick="saveReport()" id="rep-save-btn">🚨 שלח דיווח</button>
+    <button class="btn btn-grey" onclick="closeOverlay('report')">ביטול</button>
   </div>
 </div>
 
-<!-- BAG MODAL -->
-<div class="modal-overlay" id="modal-bag">
+<!-- STATION OPTIONS MODAL -->
+<div class="overlay" id="overlay-station-options">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">🛍️ דיווח שקית מלאה</div>
-
-    <div class="form-group">
-      <label class="form-label">מיקום השקית</label>
-      <div class="loc-btns">
-        <button class="loc-btn" id="bag-gps-btn" onclick="getGPS('bag')">📍 מיקום שלי</button>
-        <button class="loc-btn" id="bag-map-btn" onclick="toggleMapPicker('bag')">🗺️ סמן על מפה</button>
-      </div>
-      <div class="loc-status" id="bag-loc-status">לא נבחר מיקום</div>
-      <div id="bag-pin-map-wrap" style="display:none">
-        <div class="pin-map-wrap" style="position:relative">
-          <div id="bag-pin-map"></div>
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none;z-index:1000;font-size:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6))">📍</div>
-        </div>
-        <div class="pin-instruction">🗺️ גלול את המפה למיקום הנכון ולחץ אשר</div>
-        <button onclick="confirmCenter('bag')" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent);color:var(--bg);font-family:Heebo,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">✅ אשר מיקום זה</button>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">מצב השקית</label>
-      <div class="severity-group">
-        <button class="sev-btn med" onclick="setSev('bag','med',this)">
-          <span class="sev-icon">🟡</span>חצי מלאה
-        </button>
-        <button class="sev-btn high" onclick="setSev('bag','high',this)">
-          <span class="sev-icon">🔴</span>מלאה לגמרי
-        </button>
-        <button class="sev-btn" style="color:var(--danger)" onclick="setSev('bag','critical',this)">
-          <span class="sev-icon">💀</span>גולשת
-        </button>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">תמונה</label>
-      <div class="photo-upload">
-        <input type="file" accept="image/*" capture="environment" onchange="handlePhoto('bag',this)">
-        <div id="bag-photo-placeholder">📷 חובה לצלם את השקית</div>
-        <img id="bag-photo-preview" class="photo-preview">
-      </div>
-    </div>
-
-    <button class="btn-submit" style="background:#e87840;color:white" onclick="submitForm('bag')" id="bag-submit-btn">🛍️ שלח דיווח שקית</button>
-    <button class="btn-submit" style="background:var(--surface2);margin-top:8px" onclick="closeModal('bag')">ביטול</button>
+    <div class="modal-title" id="so-title">אפשרויות עמדה</div>
+    <button class="btn btn-yellow" onclick="toggleStationStatus('suspend')">⏸️ השהה עמדה</button>
+    <button class="btn btn-red" style="margin-top:8px" onclick="toggleStationStatus('delete')">🗑️ מחק עמדה</button>
+    <button class="btn btn-green" style="margin-top:8px;display:none" id="so-activate-btn" onclick="toggleStationStatus('activate')">✅ הפעל מחדש</button>
+    <button class="btn btn-grey" onclick="closeOverlay('station-options')">ביטול</button>
   </div>
 </div>
 
-<!-- VOLUNTEER MODAL -->
-<div class="modal-overlay" id="modal-volunteer">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">🙋 התנדבות</div>
-
-    <div class="form-group">
-      <label class="form-label">סוג התנדבות</label>
-      <div class="severity-group" style="grid-template-columns:1fr 1fr">
-        <button class="sev-btn" style="color:var(--trap)" onclick="setSev('volunteer','trap',this)">
-          <span class="sev-icon">🪤</span>חידוש מלכודת
-        </button>
-        <button class="sev-btn" style="color:var(--warn)" onclick="setSev('volunteer','flies',this)">
-          <span class="sev-icon">🪰</span>טיפול בזבובים
-        </button>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">מיקום (אופציונלי)</label>
-      <div class="loc-btns">
-        <button class="loc-btn" id="volunteer-gps-btn" onclick="getGPS('volunteer')">📍 מיקום שלי</button>
-        <button class="loc-btn" id="volunteer-map-btn" onclick="toggleMapPicker('volunteer')">🗺️ סמן על מפה</button>
-      </div>
-      <div class="loc-status" id="volunteer-loc-status">לא נבחר (אופציונלי)</div>
-      <div id="volunteer-pin-map-wrap" style="display:none">
-        <div class="pin-map-wrap" style="position:relative">
-          <div id="volunteer-pin-map"></div>
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none;z-index:1000;font-size:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6))">📍</div>
-        </div>
-        <div class="pin-instruction">🗺️ גלול את המפה למיקום הנכון ולחץ אשר</div>
-        <button onclick="confirmCenter('volunteer')" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent);color:var(--bg);font-family:Heebo,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">✅ אשר מיקום זה</button>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">שמך</label>
-      <input type="text" class="form-input" id="volunteer-name" placeholder="ישראל ישראלי">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">טלפון (אופציונלי)</label>
-      <input type="tel" class="form-input" id="volunteer-phone" placeholder="050-0000000">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">הערה</label>
-      <textarea class="form-input" id="volunteer-note" placeholder="מתי אתה יכול? מה אתה יכול לעשות?"></textarea>
-    </div>
-
-    <button class="btn-submit purple" onclick="submitForm('volunteer')" id="volunteer-submit-btn">🙋 הצטרף כמתנדב</button>
-    <button class="btn-submit" style="background:var(--surface2);margin-top:8px" onclick="closeModal('volunteer')">ביטול</button>
-  </div>
-</div>
-
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+<!-- Report FAB on map -->
+<button style="position:fixed;bottom:20px;right:16px;z-index:800;width:52px;height:52px;border-radius:50%;border:none;background:var(--danger);color:white;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.5);display:none" id="report-fab" onclick="openOverlay('report')">🚨</button>
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz00cvPOLtHggVbyPsfn67ORXFlw7n9E4rRlBr6ALik5wKCQ-mSHIEN46vfPYhbo7CP/exec';
-const DRIVE_FOLDER = '10g0sYi2r7f-G0rBnd75eqpEaTrxWdbYY';
 
-// State
-let map, pinMaps = {};
-let formData = { trap:{}, report:{}, bag:{}, volunteer:{} };
-let allData = [];
-let timelineFilter = 'all';
+// ===== STATE =====
+let db = { stations: [], traps: [], updates: [], reports: [] };
+let map, pinMaps = {}, pinData = {};
+let currentStationId = null, currentTrapId = null;
+let formSev = {}, formSev2 = {};
+let layerGroups = { stations: null, reports: null, volunteers: null };
+
+// ===== TABS =====
+function showTab(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('report-fab').style.display = id === 'map' ? 'block' : 'none';
+  if (id === 'map') setTimeout(() => map && map.invalidateSize(), 100);
+  if (id === 'stations') renderStationsList();
+  if (id === 'dashboard') renderDashboard();
+}
 
 // ===== MAP INIT =====
 function initMap() {
   map = L.map('map', { zoomControl: true }).setView([31.7154, 34.7586], 16);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(map);
+  layerGroups.stations = L.layerGroup().addTo(map);
+  layerGroups.reports = L.layerGroup().addTo(map);
+  layerGroups.volunteers = L.layerGroup().addTo(map);
   loadData();
+}
+
+function toggleLayer(name, btn) {
+  const lg = layerGroups[name];
+  if (!lg) return;
+  if (map.hasLayer(lg)) { map.removeLayer(lg); btn.classList.add('off'); }
+  else { lg.addTo(map); btn.classList.remove('off'); }
 }
 
 // ===== DATA =====
 function loadData() {
-  // Remove old script tag if exists
-  const old = document.getElementById('jsonp-script');
+  const old = document.getElementById('jsonp-loader');
   if (old) old.remove();
-
-  window._jsonpCallback = function(raw) {
-    try {
-      allData = raw.slice(1).filter(r => r[0]).map(r => ({
-        date: r[0], type: r[1], lat: parseFloat(r[2]), lng: parseFloat(r[3]),
-        severity: r[4], note: r[5], photoUrl: r[6], name: r[7], phone: r[8], trapId: r[9]
-      })).filter(r => !isNaN(r.lat));
-
-      renderMapMarkers();
-      renderDashboard();
-      renderTimeline();
-      document.getElementById('last-update').textContent = 'עודכן: ' + new Date().toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'});
-    } catch(e) {
-      console.log('Parse error:', e);
-    }
+  window._cb = function(raw) {
+    parseSheets(raw);
+    renderMap();
+    renderStationsList();
+    renderDashboard();
+    document.getElementById('last-sync').textContent = 'עודכן ' + new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
   };
-
-  const script = document.createElement('script');
-  script.id = 'jsonp-script';
-  script.src = SCRIPT_URL + '?callback=_jsonpCallback&t=' + Date.now();
-  document.body.appendChild(script);
+  const s = document.createElement('script');
+  s.id = 'jsonp-loader';
+  s.src = SCRIPT_URL + '?callback=_cb&t=' + Date.now();
+  document.body.appendChild(s);
 }
 
-// ===== LAYERS =====
-let activeLayers = { trap: true, nuisance: true, volunteer: true };
-let allMarkers = [];
-
-function getLayerKey(type) {
-  if (type === 'trap') return 'trap';
-  if (type === 'volunteer') return 'volunteer';
-  return 'nuisance'; // report, bag
+function parseSheets(raw) {
+  // raw is array of sheets: [[sheet1rows], [sheet2rows], [sheet3rows], [sheet4rows]]
+  // But Apps Script returns one sheet — we'll use row type to differentiate
+  // Format: [date, type(station/trap/update/report), id, parentId, name, lat, lng, severity, note, photoUrl, reporter, status, extra]
+  if (!Array.isArray(raw) || !raw.length) return;
+  
+  // Check if it's multi-sheet or single sheet
+  const isMulti = Array.isArray(raw[0]) && Array.isArray(raw[0][0]);
+  let rows = isMulti ? [...(raw[0]||[]), ...(raw[1]||[]), ...(raw[2]||[]), ...(raw[3]||[])] : raw;
+  
+  rows = rows.slice(1).filter(r => r[0] && r[1]);
+  
+  db.stations = rows.filter(r => r[1] === 'station').map(r => ({
+    id: r[2], name: r[4], lat: parseFloat(r[5]), lng: parseFloat(r[6]),
+    reporter: r[10], status: r[11] || 'active', date: r[0]
+  }));
+  db.traps = rows.filter(r => r[1] === 'trap').map(r => ({
+    id: r[2], stationId: r[3], name: r[4],
+    lat: parseFloat(r[5]), lng: parseFloat(r[6]),
+    severity: r[7], note: r[8], photoUrl: r[9],
+    reporter: r[10], status: r[11] || 'active', date: r[0]
+  }));
+  db.updates = rows.filter(r => r[1] === 'update').map(r => ({
+    id: r[2], trapId: r[3], severity: r[7], note: r[8],
+    photoUrl: r[9], reporter: r[10], date: r[0]
+  }));
+  db.reports = rows.filter(r => r[1] === 'report').map(r => ({
+    id: r[2], lat: parseFloat(r[5]), lng: parseFloat(r[6]),
+    severity: r[7], subtype: r[12], note: r[8],
+    reporter: r[10], date: r[0]
+  }));
 }
 
-function toggleLayer(layer, btn) {
-  activeLayers[layer] = !activeLayers[layer];
-  btn.style.opacity = activeLayers[layer] ? '1' : '0.4';
-  allMarkers.forEach(({marker, layerKey}) => {
-    if (layerKey === layer) {
-      if (activeLayers[layer]) marker.addTo(map);
-      else map.removeLayer(marker);
-    }
-  });
-}
+// ===== MAP RENDER =====
+function renderMap() {
+  layerGroups.stations.clearLayers();
+  layerGroups.reports.clearLayers();
 
-// ===== MAP MARKERS =====
-function getMarkerColor(type, severity) {
-  if (type === 'trap') return '#4ab8e8';
-  if (type === 'volunteer') return '#c084fc';
-  if (severity === 'high' || severity === 'critical') return '#e84040';
-  if (severity === 'med') return '#f0c040';
-  return '#5cdb5c';
-}
+  db.stations.filter(s => s.status === 'active' && !isNaN(s.lat)).forEach(station => {
+    const traps = db.traps.filter(t => t.stationId === station.id && t.status === 'active');
+    const urgentCount = traps.filter(t => getDaysOld(t) >= 14).length;
+    const color = urgentCount > 0 ? '#e63232' : traps.length > 0 ? '#38b6e8' : '#6b8f6b';
 
-function renderMapMarkers() {
-  allMarkers.forEach(({marker}) => map.removeLayer(marker));
-  allMarkers = [];
-
-  // Group by location key (rounded coords) for spot dashboard
-  const spots = {};
-  allData.forEach(item => {
-    const key = item.lat.toFixed(4) + ',' + item.lng.toFixed(4);
-    if (!spots[key]) spots[key] = { lat: item.lat, lng: item.lng, items: [] };
-    spots[key].items.push(item);
-  });
-
-  Object.values(spots).forEach(spot => {
-    // Use most severe/recent item for marker style
-    const sorted = [...spot.items].sort((a,b) => new Date(b.date) - new Date(a.date));
-    const main = sorted[0];
-    const color = getMarkerColor(main.type, main.severity);
-    const layerKey = getLayerKey(main.type);
-
-    const marker = L.circleMarker([spot.lat, spot.lng], {
-      radius: main.type === 'trap' ? 13 : 10,
-      fillColor: color,
-      color: '#fff',
-      weight: 2,
-      fillOpacity: 0.88
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="position:relative">
+        <div style="width:${traps.length>0?'20px':'16px'};height:${traps.length>0?'20px':'16px'};border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>
+        ${traps.length > 0 ? `<div style="position:absolute;top:-6px;right:-6px;background:${urgentCount>0?'#e63232':'#38b6e8'};color:white;width:14px;height:14px;border-radius:50%;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;border:1px solid white">${traps.length}</div>` : ''}
+      </div>`,
+      iconSize: [24,24], iconAnchor: [12,12]
     });
 
-    if (activeLayers[layerKey]) marker.addTo(map);
+    const m = L.marker([station.lat, station.lng], {icon}).addTo(layerGroups.stations);
+    m.on('click', () => openStationSite(station.id));
+  });
 
-    // Badge for multiple reports
-    if (spot.items.length > 1) {
-      const icon = L.divIcon({
-        className: '',
-        html: `<div style="background:${color};color:${main.type==='trap'?'#0f1a0f':'white'};width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.4)">${spot.items.length}</div>`,
-        iconSize: [18,18], iconAnchor: [9,9]
-      });
-      const badge = L.marker([spot.lat, spot.lng], {icon, interactive: false});
-      if (activeLayers[layerKey]) badge.addTo(map);
-      allMarkers.push({marker: badge, layerKey});
-    }
-
-    marker.on('click', () => openSpotDashboard(spot));
-    allMarkers.push({marker, layerKey});
+  db.reports.filter(r => !isNaN(r.lat)).forEach(rep => {
+    const color = rep.severity === 'high' ? '#e63232' : rep.severity === 'med' ? '#f5c518' : '#4ddb4d';
+    const cm = L.circleMarker([rep.lat, rep.lng], {
+      radius: 8, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.85
+    }).addTo(layerGroups.reports);
+    cm.bindPopup(`<div dir="rtl" style="font-family:Heebo,sans-serif;min-width:140px">
+      <strong>${rep.subtype === 'bag' ? '🛍️ שקית' : '🚨 זבובים'}</strong><br>
+      <small>${new Date(rep.date).toLocaleDateString('he-IL')}</small>
+      ${rep.note ? `<br><span style="font-size:12px">${rep.note}</span>` : ''}
+      ${rep.reporter ? `<br><small>👤 ${rep.reporter}</small>` : ''}
+    </div>`);
   });
 }
 
-// ===== SPOT DASHBOARD =====
-function openSpotDashboard(spot) {
-  const items = [...spot.items].sort((a,b) => new Date(b.date) - new Date(a.date));
-  const typeLabels = {trap:'🪤 מלכודת', report:'🚨 דיווח זבובים', bag:'🛍️ שקית', volunteer:'🙋 מתנדב'};
-  const sevLabels = {low:'קל', med:'בינוני', high:'חמור', critical:'קריטי'};
-  const sevColors = {low:'var(--accent)', med:'var(--warn)', high:'var(--danger)', critical:'var(--danger)'};
+// ===== STATION MINI SITE =====
+function openStationSite(stationId) {
+  currentStationId = stationId;
+  const station = db.stations.find(s => s.id === stationId);
+  if (!station) return;
 
-  const mainType = items[0].type;
-  document.getElementById('spot-title').textContent = typeLabels[mainType] || '📍 נקודה';
+  document.getElementById('ss-title').textContent = station.name;
 
-  // Monthly chart for this spot
-  const months = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ'];
-  const counts = Array(12).fill(0);
-  items.forEach(d => { if (d.date) counts[new Date(d.date).getMonth()]++; });
-  const max = Math.max(...counts, 1);
+  const traps = db.traps.filter(t => t.stationId === stationId && t.status === 'active');
+  const allTraps = db.traps.filter(t => t.stationId === stationId);
+  const urgent = traps.filter(t => getDaysOld(t) >= 14);
+  const soon = traps.filter(t => { const d = getDaysOld(t); return d >= 10 && d < 14; });
 
-  const chartHtml = `
-    <div style="margin:12px 0 16px">
-      <div style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">דיווחים לפי חודש</div>
-      ${counts.map((c,i) => c > 0 ? `
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-          <div style="width:36px;font-size:11px;color:var(--muted);text-align:right">${months[i]}</div>
-          <div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
-            <div style="width:${c/max*100}%;height:100%;background:var(--accent);border-radius:4px"></div>
-          </div>
-          <div style="font-size:11px;color:var(--muted);width:16px">${c}</div>
-        </div>` : '').join('')}
+  // Status bar
+  const statusBar = `<div class="station-status-bar">
+    <div class="status-pill" style="background:rgba(56,182,232,0.15);color:var(--trap-color)">🪤 ${traps.length} פעילות</div>
+    ${urgent.length ? `<div class="status-pill" style="background:rgba(230,50,50,0.15);color:var(--danger)">🔴 ${urgent.length} דחוף</div>` : ''}
+    ${soon.length ? `<div class="status-pill" style="background:rgba(245,197,24,0.15);color:var(--warn)">🟡 ${soon.length} בקרוב</div>` : ''}
+    <div class="status-pill" style="background:rgba(100,100,100,0.2);color:var(--muted)">${allTraps.length} סה"כ היסטוריה</div>
+  </div>`;
+
+  // Share buttons
+  const shareHtml = `<div class="share-btns" style="margin-bottom:12px">
+    <a class="share-btn" href="https://waze.com/ul?ll=${station.lat},${station.lng}&navigate=yes" target="_blank">🚗 Waze</a>
+    <a class="share-btn" href="https://maps.google.com/?q=${station.lat},${station.lng}" target="_blank">🗺️ Google Maps</a>
+    <button class="share-btn" onclick="copyLink(${station.lat},${station.lng})">🔗 העתק קישור</button>
+  </div>`;
+
+  // Traps
+  const trapsHtml = traps.length === 0
+    ? `<div class="empty"><div class="empty-icon">🪤</div><div>אין מלכודות פעילות</div></div>`
+    : traps.map(trap => renderTrapCard(trap)).join('');
+
+  // Done traps
+  const doneTraps = allTraps.filter(t => t.status !== 'active');
+  const doneSec = doneTraps.length ? `
+    <div class="traps-section-title" style="color:var(--muted)">✅ הושלכו (${doneTraps.length})</div>
+    ${doneTraps.map(t => renderTrapCard(t, true)).join('')}` : '';
+
+  document.getElementById('station-site-content').innerHTML = `
+    ${statusBar}
+    <div class="station-site">
+      ${shareHtml}
+      <button class="ss-action-btn" onclick="openManageStation()">⚙️ נהל עמדה</button>
+      <div class="traps-section-title">🪤 מלכודות פעילות (${traps.length})</div>
+      ${trapsHtml}
+      <button class="add-trap-btn" onclick="openAddTrap('${stationId}')">➕ הוסף מלכודת חדשה</button>
+      ${doneSec}
     </div>`;
 
-  // Timeline of all reports for this spot
-  const timelineHtml = items.map(item => {
-    const dateStr = item.date ? new Date(item.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
-    const sev = item.severity;
-    return `
-      <div style="display:flex;gap:10px;padding:10px;background:var(--surface2);border-radius:10px;margin-bottom:8px">
-        <div style="font-size:22px;flex-shrink:0">${{trap:'🪤',report:'🚨',bag:'🛍️',volunteer:'🙋'}[item.type]||'📍'}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:700;color:${sevColors[sev]||'var(--text)'}">
-            ${sevLabels[sev]||sev||'—'}
-            ${item.trapId ? `<span style="color:var(--muted);font-weight:400"> · ${item.trapId}</span>` : ''}
-          </div>
-          ${item.note ? `<div style="font-size:12px;color:var(--text);margin-top:2px">${item.note}</div>` : ''}
-          <div style="font-size:11px;color:var(--muted);margin-top:3px">${dateStr}${item.name?' · '+item.name:''}</div>
-        </div>
-        ${item.photoUrl ? `<img src="${item.photoUrl}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display='none'">` : ''}
-      </div>`;
+  openOverlay('station');
+}
+
+function renderTrapCard(trap, done = false) {
+  const updates = db.updates.filter(u => u.trapId === trap.id).sort((a,b) => new Date(b.date)-new Date(a.date));
+  const lastUpdate = updates[0];
+  const currentSev = lastUpdate ? lastUpdate.severity : trap.severity;
+  const days = getDaysOld(trap);
+  const sevColor = { low:'var(--accent)', med:'var(--warn)', high:'var(--danger)', done:'var(--muted)' }[currentSev] || 'var(--muted)';
+  const sevLabel = { low:'🟢 ריקה', med:'🟡 קצת מלאה', high:'🔴 מלאה', done:'✅ הושלכה' }[currentSev] || currentSev;
+  const urgencyBadge = !done && days >= 14 ? `<span class="badge badge-red">🔴 ${days} יום — דחוף!</span>` :
+    !done && days >= 10 ? `<span class="badge badge-yellow">🟡 ${days} יום</span>` :
+    !done ? `<span class="badge badge-green">${days} יום</span>` : '';
+
+  const timelineHtml = updates.map(u => {
+    const uSevColor = { low:'var(--accent)', med:'var(--warn)', high:'var(--danger)', done:'var(--muted)' }[u.severity] || 'var(--muted)';
+    const uSevLabel = { low:'🟢 ריקה', med:'🟡 קצת מלאה', high:'🔴 מלאה', done:'✅ הושלכה לפח' }[u.severity] || u.severity;
+    const dateStr = new Date(u.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<div class="timeline-item">
+      <div class="tl-icon">📸</div>
+      <div class="tl-content">
+        <div class="tl-sev" style="color:${uSevColor}">${uSevLabel}</div>
+        ${u.note ? `<div class="tl-note">${u.note}</div>` : ''}
+        <div class="tl-meta">${dateStr}${u.reporter ? ' · ' + u.reporter : ''}</div>
+      </div>
+      ${u.photoUrl ? `<img class="tl-img" src="${u.photoUrl}" onerror="this.style.display='none'">` : ''}
+    </div>`;
   }).join('');
 
-  document.getElementById('spot-content').innerHTML = `
-    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${items.length} רשומות · ${spot.lat.toFixed(4)}, ${spot.lng.toFixed(4)}</div>
-    ${chartHtml}
-    <div style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">היסטוריה</div>
-    ${timelineHtml}`;
+  const firstEntry = `<div class="timeline-item">
+    <div class="tl-icon">🪤</div>
+    <div class="tl-content">
+      <div class="tl-sev" style="color:var(--trap-color)">הותקנה</div>
+      ${trap.note ? `<div class="tl-note">${trap.note}</div>` : ''}
+      <div class="tl-meta">${new Date(trap.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}${trap.reporter ? ' · ' + trap.reporter : ''}</div>
+    </div>
+    ${trap.photoUrl ? `<img class="tl-img" src="${trap.photoUrl}" onerror="this.style.display='none'">` : ''}
+  </div>`;
 
-  document.getElementById('modal-spot').classList.add('open');
+  return `<div class="trap-card">
+    <div class="trap-card-header" onclick="toggleTrapBody('${trap.id}')">
+      <div class="trap-status-dot" style="background:${sevColor}"></div>
+      <div class="trap-info">
+        <div class="trap-name">${trap.name}</div>
+        <div class="trap-meta" style="color:${sevColor}">${sevLabel} ${urgencyBadge}</div>
+      </div>
+      <div class="trap-expand" id="expand-${trap.id}">▾</div>
+    </div>
+    <div class="trap-body" id="body-${trap.id}">
+      ${timelineHtml}${firstEntry}
+      ${!done ? `<button class="add-update-btn" onclick="openAddUpdate('${trap.id}','${trap.name}')">➕ הוסף עדכון</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function toggleTrapBody(trapId) {
+  const body = document.getElementById('body-' + trapId);
+  const arrow = document.getElementById('expand-' + trapId);
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+// ===== STATIONS LIST =====
+function renderStationsList() {
+  const el = document.getElementById('stations-list');
+  if (!db.stations.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📍</div><div>אין עמדות עדיין<br><small>הוסף עמדה מהמפה</small></div></div>`;
+    return;
+  }
+  el.innerHTML = db.stations.map(station => {
+    const traps = db.traps.filter(t => t.stationId === station.id && t.status === 'active');
+    const urgent = traps.filter(t => getDaysOld(t) >= 14).length;
+    const soon = traps.filter(t => { const d=getDaysOld(t); return d>=10&&d<14; }).length;
+    const color = urgent > 0 ? '#e63232' : traps.length > 0 ? '#38b6e8' : '#6b8f6b';
+    const isInactive = station.status !== 'active';
+    return `<div class="station-card ${isInactive?'status-inactive':''}" onclick="openStationSite('${station.id}')">
+      <div class="station-header">
+        <div class="station-dot" style="background:${color}"></div>
+        <div class="station-info">
+          <div class="station-name">${station.name}${isInactive?' <span style="font-size:11px;color:var(--muted)">(מושהית)</span>':''}</div>
+          <div class="station-meta">${new Date(station.date).toLocaleDateString('he-IL')} · ${station.reporter||''}</div>
+          <div class="station-badges">
+            ${traps.length ? `<span class="badge badge-blue">🪤 ${traps.length} פעילות</span>` : '<span class="badge badge-grey">אין מלכודות</span>'}
+            ${urgent ? `<span class="badge badge-red">🔴 ${urgent} דחוף</span>` : ''}
+            ${soon ? `<span class="badge badge-yellow">🟡 ${soon} בקרוב</span>` : ''}
+          </div>
+        </div>
+        <div class="station-arrow">›</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ===== DASHBOARD =====
 function renderDashboard() {
-  const traps = allData.filter(d => d.type === 'trap');
-  const reports = allData.filter(d => d.type === 'report');
-  const bags = allData.filter(d => d.type === 'bag');
-  const volunteers = allData.filter(d => d.type === 'volunteer');
-  const fullTraps = traps.filter(d => d.severity === 'high');
+  const activeStations = db.stations.filter(s => s.status === 'active');
+  const activeTraps = db.traps.filter(t => t.status === 'active');
+  const urgent = activeTraps.filter(t => getDaysOld(t) >= 14);
+  const soon = activeTraps.filter(t => { const d=getDaysOld(t); return d>=10&&d<14; });
 
-  document.getElementById('stat-traps').textContent = traps.length;
-  document.getElementById('stat-reports').textContent = reports.length + bags.length;
-  document.getElementById('stat-full').textContent = fullTraps.length;
-  document.getElementById('stat-volunteers').textContent = volunteers.length;
+  document.getElementById('d-stations').textContent = activeStations.length;
+  document.getElementById('d-traps').textContent = activeTraps.length;
+  document.getElementById('d-urgent').textContent = urgent.length;
+  document.getElementById('d-soon').textContent = soon.length;
 
   // Hotspot
-  const severeReports = [...reports, ...bags].filter(d => d.severity === 'high' || d.severity === 'critical');
-  document.getElementById('stat-hotspot').textContent = 
-    severeReports.length > 0 ? `${severeReports.length} דיווחים חמורים — דורש טיפול דחוף` : 'אין דיווחים חמורים כרגע ✅';
+  let hotspot = '—';
+  if (activeStations.length) {
+    const ranked = activeStations.map(s => ({
+      name: s.name,
+      score: db.traps.filter(t => t.stationId === s.id && getDaysOld(t) >= 14).length * 2 +
+             db.traps.filter(t => t.stationId === s.id && getDaysOld(t) >= 10).length
+    })).sort((a,b) => b.score - a.score);
+    hotspot = ranked[0].score > 0 ? `${ranked[0].name} (${ranked[0].score} נקודות)` : 'הכל תקין ✅';
+  }
+  document.getElementById('d-hotspot').textContent = hotspot;
 
   // Monthly chart
   const months = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ'];
   const counts = Array(12).fill(0);
-  [...reports, ...bags].forEach(d => {
-    if (d.date) counts[new Date(d.date).getMonth()]++;
-  });
+  [...db.traps, ...db.updates].forEach(d => { if (d.date) counts[new Date(d.date).getMonth()]++; });
   const max = Math.max(...counts, 1);
-  const colors = ['#5cdb5c','#5cdb5c','#5cdb5c','#f0c040','#f0c040','#e84040','#e84040','#e84040','#f0c040','#f0c040','#5cdb5c','#5cdb5c'];
-  
-  document.getElementById('month-chart').innerHTML = counts.map((c,i) => `
+  document.getElementById('d-chart').innerHTML = counts.map((c,i) => `
     <div class="bar-row">
-      <div class="bar-label">${months[i]}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${(c/max*100)}%;background:${colors[i]}"></div></div>
-      <div class="bar-val">${c}</div>
-    </div>
-  `).join('');
+      <div class="bar-lbl">${months[i]}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${c/max*100}%;background:${c>0?'var(--accent)':'var(--s2)'}"></div></div>
+      <div class="bar-val">${c||''}</div>
+    </div>`).join('');
 }
 
-// ===== TIMELINE =====
-function filterTimeline(f, btn) {
-  timelineFilter = f;
-  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTimeline();
+// ===== SAVE STATION =====
+function openAddStation() { openOverlay('add-station'); }
+
+async function saveStation() {
+  const name = document.getElementById('ns-name').value.trim();
+  const reporter = document.getElementById('ns-reporter').value.trim();
+  const loc = pinData['ns'];
+  if (!name) { showToast('⚠️ נא להכניס שם עמדה'); return; }
+  if (!loc) { showToast('⚠️ נא לבחור מיקום'); return; }
+  if (!reporter) { showToast('⚠️ נא להכניס שם'); return; }
+
+  const btn = document.getElementById('ns-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading-spin"></span>שומר...';
+
+  const id = 'ST' + Date.now();
+  await postData({ rowType:'station', id, parentId:'', name, lat:loc.lat, lng:loc.lng, severity:'', note:'', photoUrl:'', reporter, status:'active', extra:'' });
+
+  showToast('✅ עמדה נוצרה!');
+  closeOverlay('add-station');
+  document.getElementById('ns-name').value = '';
+  document.getElementById('ns-reporter').value = '';
+  pinData['ns'] = null;
+  btn.disabled = false; btn.textContent = '📍 שמור עמדה';
+  setTimeout(loadData, 1500);
 }
 
-function renderTimeline() {
-  const list = document.getElementById('timeline-list');
-  let items = [...allData].reverse();
-  if (timelineFilter !== 'all') items = items.filter(d => d.type === timelineFilter);
-  
-  if (items.length === 0) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div>אין עדיין דיווחים</div></div>`;
-    return;
-  }
-
-  const typeInfo = {
-    trap: { icon:'🪤', label:'מלכודת', color:'var(--trap)', bg:'rgba(74,184,232,0.15)' },
-    report: { icon:'🚨', label:'דיווח זבובים', color:'var(--danger)', bg:'rgba(232,64,64,0.15)' },
-    bag: { icon:'🛍️', label:'שקית מלאה', color:'#e87840', bg:'rgba(232,120,64,0.15)' },
-    volunteer: { icon:'🙋', label:'התנדבות', color:'var(--volunteer)', bg:'rgba(192,132,252,0.15)' },
-  };
-
-  const sevLabel = {low:'קל', med:'בינוני', high:'חמור', critical:'קריטי'};
-
-  list.innerHTML = items.map(item => {
-    const t = typeInfo[item.type] || typeInfo.report;
-    const dateStr = item.date ? new Date(item.date).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
-    return `
-      <div class="timeline-item">
-        <div class="ti-dot" style="background:${t.bg};color:${t.color}">${t.icon}</div>
-        <div class="ti-content">
-          <div class="ti-type">${t.label}</div>
-          <div class="ti-text">${item.severity ? sevLabel[item.severity] || item.severity : ''}${item.note ? ' — ' + item.note : ''}${item.trapId ? ' ' + item.trapId : ''}</div>
-          <div class="ti-meta">${dateStr}${item.name ? ' · ' + item.name : ''}</div>
-        </div>
-        ${item.photoUrl ? `<img class="ti-img" src="${item.photoUrl}" onerror="this.style.display='none'">` : ''}
-      </div>`;
-  }).join('');
+// ===== SAVE TRAP =====
+function openAddTrap(stationId) {
+  currentStationId = stationId;
+  const station = db.stations.find(s => s.id === stationId);
+  const today = new Date().toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'}).replace('.','\/').slice(0,5);
+  document.getElementById('at-station-name').textContent = '📍 ' + (station ? station.name : '');
+  document.getElementById('at-name').value = station ? `${station.name} ${today}` : '';
+  document.getElementById('at-date').value = new Date().toISOString().split('T')[0];
+  formSev['at'] = 'low';
+  // Reset UI
+  document.querySelectorAll('#overlay-add-trap .sev-btn').forEach(b => b.className = 'sev-btn');
+  document.querySelector('#overlay-add-trap .sev-btn').classList.add('sel-low');
+  openOverlay('add-trap');
 }
 
-// ===== MODALS =====
-function openModal(type) {
-  document.getElementById('modal-' + type).classList.add('open');
-  formData[type] = {};
-  // Set today as default date for trap
-  const dateInput = document.getElementById('trap-date-input');
-  if (dateInput && !dateInput.value) {
-    dateInput.value = new Date().toISOString().split('T')[0];
-  }
-  // Init pin map if needed
-  setTimeout(() => initPinMap(type), 100);
-}
+async function saveTrap() {
+  const name = document.getElementById('at-name').value.trim();
+  const reporter = document.getElementById('at-reporter').value.trim();
+  const dateVal = document.getElementById('at-date').value;
+  const sev = formSev['at'];
+  if (!name) { showToast('⚠️ נא להכניס שם'); return; }
+  if (!reporter) { showToast('⚠️ נא להכניס שמך'); return; }
+  if (!sev) { showToast('⚠️ נא לבחור סטטוס'); return; }
 
-function closeModal(type) {
-  document.getElementById('modal-' + type).classList.remove('open');
-  // Reset
-  const locStatus = document.getElementById(type + '-loc-status');
-  if (locStatus) { locStatus.textContent = 'לא נבחר מיקום'; locStatus.className = 'loc-status'; }
-  document.querySelectorAll(`#modal-${type} .sev-btn`).forEach(b => b.classList.remove('selected'));
-  const preview = document.getElementById(type + '-photo-preview');
-  if (preview) { preview.style.display = 'none'; }
-  const placeholder = document.getElementById(type + '-photo-placeholder');
-  if (placeholder) { placeholder.style.display = ''; }
-  formData[type] = {};
-}
+  const station = db.stations.find(s => s.id === currentStationId);
+  const btn = document.getElementById('at-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading-spin"></span>שומר...';
 
-// Click outside to close
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) {
-      const type = overlay.id.replace('modal-','');
-      closeModal(type);
-    }
+  const id = 'TR' + Date.now();
+  await postData({
+    rowType: 'trap', id, parentId: currentStationId, name,
+    lat: station ? station.lat : '', lng: station ? station.lng : '',
+    severity: sev, note: '', photoUrl: '',
+    reporter, status: 'active', extra: dateVal
   });
-});
 
-// ===== PIN MAP =====
-function initPinMap(type) {
-  const containerId = type + '-pin-map';
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = '';
-
-  const m = L.map(containerId, { zoomControl: true, tap: true, dragging: true }).setView([31.7154, 34.7586], 16);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(m);
-  setTimeout(() => m.invalidateSize(), 200);
-
-  // מניעת גלילה של המודל כשהאצבע על המפה
-  container.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
-  container.addEventListener('touchmove', e => { e.stopPropagation(); }, { passive: false });
-
-  // Prevent modal scroll when touching the map
-  container.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
-  container.addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
-  
-  let marker = null;
-  m.on('click', e => {
-    if (marker) m.removeLayer(marker);
-    marker = L.marker(e.latlng).addTo(m);
-    formData[type].lat = e.latlng.lat;
-    formData[type].lng = e.latlng.lng;
-    const status = document.getElementById(type + '-loc-status');
-    status.textContent = `✅ נבחר: ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
-    status.className = 'loc-status ok';
-  });
-  pinMaps[type] = m;
+  showToast('✅ מלכודת נוספה!');
+  closeOverlay('add-trap');
+  document.getElementById('at-reporter').value = '';
+  btn.disabled = false; btn.textContent = '🪤 הוסף מלכודת';
+  setTimeout(() => { loadData(); setTimeout(() => openStationSite(currentStationId), 1600); }, 200);
 }
 
-function toggleMapPicker(type) {
-  const wrap = document.getElementById(type + '-pin-map-wrap');
-  const btn = document.getElementById(type + '-map-btn');
-  const isOpen = wrap.style.display !== 'none';
-  wrap.style.display = isOpen ? 'none' : 'block';
-  btn.classList.toggle('active', !isOpen);
-  if (!isOpen) {
-    // Destroy and recreate to fix tile/click issues
-    if (pinMaps[type]) {
-      pinMaps[type].remove();
-      pinMaps[type] = null;
-    }
-    setTimeout(() => initPinMap(type), 150);
+// ===== SAVE UPDATE =====
+function openAddUpdate(trapId, trapName) {
+  currentTrapId = trapId;
+  document.getElementById('au-trap-name').textContent = '🪤 ' + trapName;
+  document.getElementById('au-note').value = '';
+  document.getElementById('au-reporter').value = '';
+  document.getElementById('au-photo-ph').style.display = '';
+  document.getElementById('au-photo-prev').style.display = 'none';
+  formSev['au'] = null;
+  document.querySelectorAll('#overlay-add-update .sev-btn').forEach(b => b.className = 'sev-btn');
+  openOverlay('add-update');
+}
+
+async function saveUpdate() {
+  const reporter = document.getElementById('au-reporter').value.trim();
+  const note = document.getElementById('au-note').value.trim();
+  const sev = formSev['au'];
+  if (!sev) { showToast('⚠️ נא לבחור סטטוס'); return; }
+  if (!reporter) { showToast('⚠️ נא להכניס שמך'); return; }
+
+  const btn = document.getElementById('au-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading-spin"></span>שולח...';
+
+  // If done — mark trap as inactive
+  if (sev === 'done') {
+    await postData({ rowType:'trapStatus', id: currentTrapId, parentId:'', name:'', lat:'', lng:'', severity:'done', note, photoUrl:'', reporter, status:'done', extra:'' });
   }
+
+  await postData({ rowType:'update', id:'UP'+Date.now(), parentId:currentTrapId, name:'', lat:'', lng:'', severity:sev, note, photoUrl:'', reporter, status:'', extra:'' });
+
+  showToast('✅ עדכון נשלח!');
+  closeOverlay('add-update');
+  btn.disabled = false; btn.textContent = '✅ שלח עדכון';
+  setTimeout(() => { loadData(); setTimeout(() => openStationSite(currentStationId), 1600); }, 200);
+}
+
+// ===== SAVE REPORT =====
+async function saveReport() {
+  const reporter = document.getElementById('rep-reporter').value.trim();
+  const note = document.getElementById('rep-note').value.trim();
+  const loc = pinData['rep'];
+  const sev = formSev['rep'];
+  const sev2 = formSev2['rep'];
+  if (!sev) { showToast('⚠️ נא לבחור סוג דיווח'); return; }
+  if (!sev2) { showToast('⚠️ נא לבחור חומרה'); return; }
+  if (!loc) { showToast('⚠️ נא לבחור מיקום'); return; }
+  if (!reporter) { showToast('⚠️ נא להכניס שמך'); return; }
+
+  const btn = document.getElementById('rep-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading-spin"></span>שולח...';
+
+  await postData({ rowType:'report', id:'RP'+Date.now(), parentId:'', name:'', lat:loc.lat, lng:loc.lng, severity:sev2, note, photoUrl:'', reporter, status:'', extra:sev });
+
+  showToast('✅ דיווח נשלח!');
+  closeOverlay('report');
+  document.getElementById('rep-reporter').value = '';
+  document.getElementById('rep-note').value = '';
+  pinData['rep'] = null;
+  btn.disabled = false; btn.textContent = '🚨 שלח דיווח';
+  setTimeout(loadData, 1500);
+}
+
+// ===== STATION MANAGE =====
+let stationOptionsAction = null;
+function openManageStation() {
+  const station = db.stations.find(s => s.id === currentStationId);
+  document.getElementById('so-title').textContent = station ? station.name : 'עמדה';
+  const isInactive = station && station.status !== 'active';
+  document.getElementById('so-activate-btn').style.display = isInactive ? 'block' : 'none';
+  openOverlay('station-options');
+}
+
+async function toggleStationStatus(action) {
+  if (action === 'delete' && !confirm('למחוק את העמדה לצמיתות?')) return;
+  const newStatus = action === 'delete' ? 'deleted' : action === 'suspend' ? 'suspended' : 'active';
+  await postData({ rowType:'stationStatus', id:currentStationId, parentId:'', name:'', lat:'', lng:'', severity:'', note:'', photoUrl:'', reporter:'', status:newStatus, extra:'' });
+  closeOverlay('station-options');
+  closeOverlay('station');
+  showToast(action === 'delete' ? '🗑️ עמדה נמחקה' : action === 'suspend' ? '⏸️ עמדה הושהתה' : '✅ עמדה הופעלה');
+  setTimeout(loadData, 1500);
+}
+
+// ===== POST DATA =====
+async function postData(data) {
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  } catch(e) { console.log('Post error:', e); }
 }
 
 // ===== GPS =====
-function getGPS(type) {
-  const btn = document.getElementById(type + '-gps-btn');
-  const status = document.getElementById(type + '-loc-status');
-  btn.textContent = '⏳ ממתין...';
-  btn.disabled = true;
-  
+function getGPS(prefix) {
+  const btn = document.getElementById(prefix + '-gps-btn');
+  const status = document.getElementById(prefix + '-loc-status');
+  btn.textContent = '⏳...'; btn.disabled = true;
   navigator.geolocation.getCurrentPosition(
     pos => {
-      formData[type].lat = pos.coords.latitude;
-      formData[type].lng = pos.coords.longitude;
-      status.textContent = `✅ מיקום נמצא (דיוק: ${Math.round(pos.coords.accuracy)}מ')`;
+      pinData[prefix] = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      status.textContent = `✅ מיקום נמצא (${Math.round(pos.coords.accuracy)}מ' דיוק)`;
       status.className = 'loc-status ok';
-      btn.textContent = '📍 GPS ✅';
-      btn.disabled = false;
-      btn.classList.add('active');
+      btn.textContent = '📍 GPS ✅'; btn.disabled = false; btn.classList.add('ok');
     },
-    err => {
-      status.textContent = '❌ לא ניתן לקבל מיקום — נסה סמן על מפה';
+    () => {
+      status.textContent = '❌ לא ניתן — נסה סמן על מפה';
       status.className = 'loc-status err';
-      btn.textContent = '📍 GPS אוטומטי';
-      btn.disabled = false;
+      btn.textContent = '📍 GPS'; btn.disabled = false;
     },
     { enableHighAccuracy: true, timeout: 10000 }
   );
 }
 
-// ===== PHOTO =====
-function handlePhoto(type, input) {
-  const file = input.files[0];
-  if (!file) return;
-  
-  // Try to read EXIF GPS
-  const reader = new FileReader();
-  reader.onload = e => {
-    const preview = document.getElementById(type + '-photo-preview');
-    const placeholder = document.getElementById(type + '-photo-placeholder');
-    if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
-    if (placeholder) placeholder.style.display = 'none';
-    
-    // Store as base64 for now (Drive upload requires server)
-    formData[type].photoBase64 = e.target.result;
-    formData[type].photoFile = file;
-  };
-  reader.readAsDataURL(file);
-}
-
-// ===== SEVERITY =====
-function setSev(type, val, btn) {
-  document.querySelectorAll(`#modal-${type} .sev-btn`).forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  formData[type].severity = val;
-}
-
-// ===== SUBMIT =====
-async function submitForm(type) {
-  const btn = document.getElementById(type + '-submit-btn');
-  const data = formData[type];
-
-  // Validate location for required types
-  if (['trap','report','bag'].includes(type) && !data.lat) {
-    showToast('⚠️ נא לבחור מיקום קודם');
-    return;
-  }
-  if (!data.severity && type !== 'volunteer') {
-    showToast('⚠️ נא לבחור דרגת חומרה');
-    return;
-  }
-  if (type === 'volunteer' && !document.getElementById('volunteer-name').value.trim()) {
-    showToast('⚠️ נא להכניס שם');
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = 'שולח... <span class="loading"></span>';
-
-  const payload = {
-    type,
-    lat: data.lat || '',
-    lng: data.lng || '',
-    severity: data.severity || '',
-    note: (document.getElementById(type + '-note') || {value:''}).value,
-    name: (document.getElementById(type + '-name') || document.getElementById('volunteer-name') || {value:''}).value,
-    phone: (document.getElementById('volunteer-phone') || {value:''}).value,
-    trapId: (document.getElementById('trap-id-input') || {value:''}).value,
-    trapDate: (document.getElementById('trap-date-input') || {value:''}).value,
-    photoUrl: '',
-  };
-
-  try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    
-    showToast('✅ נשמר בהצלחה!');
-    closeModal(type);
-    setTimeout(loadData, 1500);
-  } catch(e) {
-    showToast('❌ שגיאה בשמירה, נסה שוב');
-  }
-
-  btn.disabled = false;
-  btn.innerHTML = { trap:'✅ שמור עדכון', report:'🚨 שלח דיווח', bag:'🛍️ שלח דיווח שקית', volunteer:'🙋 הצטרף כמתנדב' }[type];
-}
-
-// ===== UTILS =====
-function showPage(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  event.currentTarget.classList.add('active');
-  
-  if (page === 'map') {
-    setTimeout(() => map && map.invalidateSize(), 100);
-    document.getElementById('fab-group').style.display = 'flex';
-  } else {
-    document.getElementById('fab-group').style.display = 'none';
+// ===== PIN MAP =====
+function togglePinMap(prefix) {
+  const wrap = document.getElementById(prefix + '-pin-wrap');
+  const btn = document.getElementById(prefix + '-map-btn');
+  const isOpen = wrap.style.display !== 'none';
+  wrap.style.display = isOpen ? 'none' : 'block';
+  btn.classList.toggle('ok', !isOpen);
+  if (!isOpen) {
+    if (pinMaps[prefix]) { pinMaps[prefix].remove(); pinMaps[prefix] = null; }
+    setTimeout(() => {
+      const el = document.getElementById(prefix + '-pin-map');
+      if (!el) return;
+      const m = L.map(prefix + '-pin-map', { tap: true, dragging: true }).setView([31.7154, 34.7586], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(m);
+      setTimeout(() => m.invalidateSize(), 200);
+      el.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+      el.addEventListener('touchmove', e => e.stopPropagation(), { passive: false });
+      pinMaps[prefix] = m;
+    }, 150);
   }
 }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-// ===== CONFIRM CENTER =====
-function confirmCenter(type) {
-  const m = pinMaps[type];
+function confirmCenter(prefix) {
+  const m = pinMaps[prefix];
   if (!m) return;
-  const center = m.getCenter();
-  formData[type].lat = center.lat;
-  formData[type].lng = center.lng;
-  const status = document.getElementById(type + '-loc-status');
-  status.textContent = `✅ מיקום נבחר: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}`;
+  const c = m.getCenter();
+  pinData[prefix] = { lat: c.lat, lng: c.lng };
+  const status = document.getElementById(prefix + '-loc-status');
+  status.textContent = `✅ מיקום אושר`;
   status.className = 'loc-status ok';
   showToast('✅ מיקום אושר!');
 }
 
+// ===== PHOTO =====
+function handlePhoto(prefix, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = document.getElementById(prefix + '-photo-prev');
+    const ph = document.getElementById(prefix + '-photo-ph');
+    if (prev) { prev.src = e.target.result; prev.style.display = 'block'; }
+    if (ph) ph.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== SEV =====
+function setSev(prefix, val, btn) {
+  document.querySelectorAll(`#overlay-add-${prefix === 'at' ? 'trap' : prefix === 'au' ? 'update' : prefix} .sev-btn`).forEach(b => {
+    b.className = 'sev-btn';
+  });
+  const cls = {low:'sel-low',med:'sel-med',high:'sel-high',done:'sel-critical',flies:'sel-low',bag:'sel-med'}[val]||'sel-low';
+  btn.classList.add(cls);
+  formSev[prefix] = val;
+}
+
+function setSev2(prefix, val, btn) {
+  document.querySelectorAll(`#overlay-report .sev-group:nth-child(2) .sev-btn`).forEach(b => b.className = 'sev-btn');
+  const cls = {low:'sel-low',med:'sel-med',high:'sel-high'}[val]||'sel-low';
+  btn.classList.add(cls);
+  formSev2[prefix] = val;
+}
+
+// ===== OVERLAYS =====
+function openOverlay(name) { document.getElementById('overlay-' + name).classList.add('open'); }
+function closeOverlay(name) { document.getElementById('overlay-' + name).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ===== UTILS =====
+function getDaysOld(trap) {
+  const d = trap.extra || trap.date;
+  if (!d) return 0;
+  return Math.floor((Date.now() - new Date(d)) / 86400000);
+}
+
+function copyLink(lat, lng) {
+  navigator.clipboard.writeText(`https://maps.google.com/?q=${lat},${lng}`).then(() => showToast('🔗 קישור הועתק!'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
 // ===== INIT =====
 window.addEventListener('load', initMap);
-setInterval(loadData, 60000); // refresh every minute
+setInterval(loadData, 90000);
 </script>
 </body>
 </html>
