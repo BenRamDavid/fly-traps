@@ -811,7 +811,7 @@ let timelineFilter = 'all';
 
 // ===== MAP INIT =====
 function initMap() {
-  map = L.map('map', { zoomControl: true }).setView([31.88, 34.90], 14);
+  map = L.map('map', { zoomControl: true }).setView([31.7154, 34.7586], 16);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
   }).addTo(map);
@@ -992,7 +992,7 @@ function initPinMap(type) {
   if (!container) return;
   container.innerHTML = '';
   
-  const m = L.map(containerId, { zoomControl: true }).setView([31.88, 34.90], 14);
+  const m = L.map(containerId, { zoomControl: true }).setView([31.7154, 34.7586], 16);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(m);
   setTimeout(() => m.invalidateSize(), 200);
   
