@@ -882,7 +882,10 @@ function renderTrapCard(trap, done = false) {
     </div>
     <div class="trap-body" id="body-${trap.id}">
       ${timelineHtml}${firstEntry}
-      ${!done ? `<button class="add-update-btn" onclick="openAddUpdate('${trap.id}','${trap.name}')">➕ הוסף עדכון</button>` : ''}
+      ${!done ? `
+        <button class="add-update-btn" onclick="openAddUpdate('${trap.id}','${trap.name}')">➕ הוסף עדכון</button>
+        <button class="add-update-btn" style="color:var(--danger);border-color:var(--danger);margin-top:6px" onclick="deleteTrap('${trap.id}','${trap.name}')">🗑️ מחק מלכודת</button>
+      ` : ''}
     </div>
   </div>`;
 }
@@ -1119,6 +1122,14 @@ async function toggleStationStatus(action) {
   closeOverlay('station');
   showToast(action === 'delete' ? '🗑️ עמדה נמחקה' : action === 'suspend' ? '⏸️ עמדה הושהתה' : '✅ עמדה הופעלה');
   setTimeout(loadData, 1500);
+}
+
+// ===== DELETE TRAP =====
+async function deleteTrap(trapId, trapName) {
+  if (!confirm(`למחוק את "${trapName}"?`)) return;
+  await postData({ rowType:'trapStatus', id:trapId, parentId:'', name:'', lat:'', lng:'', severity:'', note:'', photoUrl:'', reporter:'מחיקה', status:'deleted', extra:'' });
+  showToast('🗑️ מלכודת נמחקה');
+  setTimeout(() => { loadData(); setTimeout(() => openStationSite(currentStationId), 1600); }, 200);
 }
 
 // ===== POST DATA =====
