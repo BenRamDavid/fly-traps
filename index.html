@@ -402,13 +402,57 @@
   .empty-icon { font-size: 48px; margin-bottom: 12px; }
 
   /* MAP PIN PICKER MODAL */
-  #pin-map {
-    height: 300px;
+  [id$="-pin-map"] {
+    height: 280px;
     border-radius: 12px;
     overflow: hidden;
     margin-top: 10px;
     border: 2px solid var(--border);
   }
+  .pin-map-wrap {
+    position: relative;
+    margin-top: 10px;
+  }
+  .pin-crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .pin-crosshair::before {
+    content: '📍';
+    font-size: 32px;
+    margin-bottom: -4px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
+  .pin-crosshair-ring {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(92,219,92,0.6);
+    border: 2px solid var(--accent);
+  }
+  .pin-confirm-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: 'Heebo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    display: none;
+  }
+  .pin-confirm-btn.visible { display: block; }
   .pin-instruction {
     font-size: 13px;
     color: var(--warn);
@@ -515,14 +559,23 @@
 </div>
 
 <!-- MAP PAGE -->
-<div id="page-map" class="page active">
+<div id="page-map" class="page active" style="position:relative">
   <div id="map"></div>
-  <div class="map-legend">
-    <div class="legend-item"><div class="legend-dot" style="background:var(--trap)"></div> מלכודת</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> דיווח קל</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--warn)"></div> דיווח בינוני</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> דיווח חמור</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--volunteer)"></div> מתנדב</div>
+  <!-- Layer filters -->
+  <div style="position:absolute;top:10px;right:10px;z-index:900;display:flex;flex-direction:column;gap:6px">
+    <button class="layer-btn active" data-layer="trap" onclick="toggleLayer('trap',this)" style="background:rgba(74,184,232,0.92);color:#0f1a0f;border:none;border-radius:20px;padding:7px 14px;font-family:Heebo,sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4)">🪤 מלכודות</button>
+    <button class="layer-btn active" data-layer="nuisance" onclick="toggleLayer('nuisance',this)" style="background:rgba(232,64,64,0.92);color:white;border:none;border-radius:20px;padding:7px 14px;font-family:Heebo,sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4)">🚨 מפגעים</button>
+    <button class="layer-btn active" data-layer="volunteer" onclick="toggleLayer('volunteer',this)" style="background:rgba(192,132,252,0.92);color:white;border:none;border-radius:20px;padding:7px 14px;font-family:Heebo,sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4)">🙋 מתנדבים</button>
+  </div>
+</div>
+
+<!-- SPOT DASHBOARD MODAL -->
+<div class="modal-overlay" id="modal-spot">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="spot-title">📍 פרטי נקודה</div>
+    <div id="spot-content"></div>
+    <button class="btn-submit" style="background:var(--surface2);margin-top:12px" onclick="closeModal('spot')">סגור</button>
   </div>
 </div>
 
@@ -600,8 +653,12 @@
       </div>
       <div class="loc-status" id="trap-loc-status">לא נבחר מיקום</div>
       <div id="trap-pin-map-wrap" style="display:none">
-        <div id="trap-pin-map"></div>
-        <div class="pin-instruction">לחץ על המפה לסימון מיקום</div>
+        <div class="pin-map-wrap" style="position:relative">
+          <div id="trap-pin-map"></div>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none;z-index:1000;font-size:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6))">📍</div>
+        </div>
+        <div class="pin-instruction">🗺️ גלול את המפה למיקום הנכון ולחץ אשר</div>
+        <button onclick="confirmCenter('trap')" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent);color:var(--bg);font-family:Heebo,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">✅ אשר מיקום זה</button>
       </div>
     </div>
 
@@ -634,6 +691,12 @@
       <input type="text" class="form-input" id="trap-id-input" placeholder="לדוגמה: מלכודת 3">
     </div>
 
+    <div class="form-group">
+      <label class="form-label">תאריך הצבה / עדכון</label>
+      <input type="date" class="form-input" id="trap-date-input">
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">ריק = היום אוטומטית</div>
+    </div>
+
     <button class="btn-submit green" onclick="submitForm('trap')" id="trap-submit-btn">✅ שמור עדכון</button>
     <button class="btn-submit" style="background:var(--surface2);margin-top:8px" onclick="closeModal('trap')">ביטול</button>
   </div>
@@ -653,8 +716,12 @@
       </div>
       <div class="loc-status" id="report-loc-status">לא נבחר מיקום</div>
       <div id="report-pin-map-wrap" style="display:none">
-        <div id="report-pin-map"></div>
-        <div class="pin-instruction">לחץ על המפה לסימון מיקום</div>
+        <div class="pin-map-wrap" style="position:relative">
+          <div id="report-pin-map"></div>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none;z-index:1000;font-size:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6))">📍</div>
+        </div>
+        <div class="pin-instruction">🗺️ גלול את המפה למיקום הנכון ולחץ אשר</div>
+        <button onclick="confirmCenter('report')" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent);color:var(--bg);font-family:Heebo,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">✅ אשר מיקום זה</button>
       </div>
     </div>
 
@@ -711,8 +778,12 @@
       </div>
       <div class="loc-status" id="bag-loc-status">לא נבחר מיקום</div>
       <div id="bag-pin-map-wrap" style="display:none">
-        <div id="bag-pin-map"></div>
-        <div class="pin-instruction">לחץ על המפה לסימון מיקום</div>
+        <div class="pin-map-wrap" style="position:relative">
+          <div id="bag-pin-map"></div>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none;z-index:1000;font-size:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6))">📍</div>
+        </div>
+        <div class="pin-instruction">🗺️ גלול את המפה למיקום הנכון ולחץ אשר</div>
+        <button onclick="confirmCenter('bag')" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent);color:var(--bg);font-family:Heebo,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">✅ אשר מיקום זה</button>
       </div>
     </div>
 
@@ -771,8 +842,12 @@
       </div>
       <div class="loc-status" id="volunteer-loc-status">לא נבחר (אופציונלי)</div>
       <div id="volunteer-pin-map-wrap" style="display:none">
-        <div id="volunteer-pin-map"></div>
-        <div class="pin-instruction">לחץ על המפה לסימון מיקום</div>
+        <div class="pin-map-wrap" style="position:relative">
+          <div id="volunteer-pin-map"></div>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none;z-index:1000;font-size:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6))">📍</div>
+        </div>
+        <div class="pin-instruction">🗺️ גלול את המפה למיקום הנכון ולחץ אשר</div>
+        <button onclick="confirmCenter('volunteer')" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent);color:var(--bg);font-family:Heebo,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">✅ אשר מיקום זה</button>
       </div>
     </div>
 
@@ -837,6 +912,27 @@ async function loadData() {
   }
 }
 
+// ===== LAYERS =====
+let activeLayers = { trap: true, nuisance: true, volunteer: true };
+let allMarkers = [];
+
+function getLayerKey(type) {
+  if (type === 'trap') return 'trap';
+  if (type === 'volunteer') return 'volunteer';
+  return 'nuisance'; // report, bag
+}
+
+function toggleLayer(layer, btn) {
+  activeLayers[layer] = !activeLayers[layer];
+  btn.style.opacity = activeLayers[layer] ? '1' : '0.4';
+  allMarkers.forEach(({marker, layerKey}) => {
+    if (layerKey === layer) {
+      if (activeLayers[layer]) marker.addTo(map);
+      else map.removeLayer(marker);
+    }
+  });
+}
+
 // ===== MAP MARKERS =====
 function getMarkerColor(type, severity) {
   if (type === 'trap') return '#4ab8e8';
@@ -847,32 +943,106 @@ function getMarkerColor(type, severity) {
 }
 
 function renderMapMarkers() {
-  map.eachLayer(l => { if (l instanceof L.CircleMarker || l instanceof L.Marker) map.removeLayer(l); });
-  
+  allMarkers.forEach(({marker}) => map.removeLayer(marker));
+  allMarkers = [];
+
+  // Group by location key (rounded coords) for spot dashboard
+  const spots = {};
   allData.forEach(item => {
-    const color = getMarkerColor(item.type, item.severity);
-    const marker = L.circleMarker([item.lat, item.lng], {
-      radius: item.type === 'trap' ? 12 : 9,
+    const key = item.lat.toFixed(4) + ',' + item.lng.toFixed(4);
+    if (!spots[key]) spots[key] = { lat: item.lat, lng: item.lng, items: [] };
+    spots[key].items.push(item);
+  });
+
+  Object.values(spots).forEach(spot => {
+    // Use most severe/recent item for marker style
+    const sorted = [...spot.items].sort((a,b) => new Date(b.date) - new Date(a.date));
+    const main = sorted[0];
+    const color = getMarkerColor(main.type, main.severity);
+    const layerKey = getLayerKey(main.type);
+
+    const marker = L.circleMarker([spot.lat, spot.lng], {
+      radius: main.type === 'trap' ? 13 : 10,
       fillColor: color,
       color: '#fff',
       weight: 2,
-      fillOpacity: 0.85
-    }).addTo(map);
+      fillOpacity: 0.88
+    });
 
-    const typeLabel = {trap:'🪤 מלכודת', report:'🚨 דיווח', bag:'🛍️ שקית', volunteer:'🙋 מתנדב'}[item.type] || item.type;
-    const sevLabel = {low:'קל', med:'בינוני', high:'חמור', critical:'קריטי'}[item.severity] || item.severity || '';
-    const dateStr = item.date ? new Date(item.date).toLocaleDateString('he-IL') : '';
-    
-    let popup = `<div style="font-family:Heebo,sans-serif;direction:rtl;min-width:160px">
-      <strong>${typeLabel}</strong>${sevLabel ? ' · <span style="color:${color}">${sevLabel}</span>' : ''}<br>
-      <small style="color:#999">${dateStr}</small>
-      ${item.note ? `<br><span style="font-size:12px">${item.note}</span>` : ''}
-      ${item.name ? `<br><small>👤 ${item.name}</small>` : ''}
-      ${item.trapId ? `<br><small>🏷️ ${item.trapId}</small>` : ''}
-      ${item.photoUrl ? `<br><img src="${item.photoUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-top:6px">` : ''}
-    </div>`;
-    marker.bindPopup(popup);
+    if (activeLayers[layerKey]) marker.addTo(map);
+
+    // Badge for multiple reports
+    if (spot.items.length > 1) {
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="background:${color};color:${main.type==='trap'?'#0f1a0f':'white'};width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.4)">${spot.items.length}</div>`,
+        iconSize: [18,18], iconAnchor: [9,9]
+      });
+      const badge = L.marker([spot.lat, spot.lng], {icon, interactive: false});
+      if (activeLayers[layerKey]) badge.addTo(map);
+      allMarkers.push({marker: badge, layerKey});
+    }
+
+    marker.on('click', () => openSpotDashboard(spot));
+    allMarkers.push({marker, layerKey});
   });
+}
+
+// ===== SPOT DASHBOARD =====
+function openSpotDashboard(spot) {
+  const items = [...spot.items].sort((a,b) => new Date(b.date) - new Date(a.date));
+  const typeLabels = {trap:'🪤 מלכודת', report:'🚨 דיווח זבובים', bag:'🛍️ שקית', volunteer:'🙋 מתנדב'};
+  const sevLabels = {low:'קל', med:'בינוני', high:'חמור', critical:'קריטי'};
+  const sevColors = {low:'var(--accent)', med:'var(--warn)', high:'var(--danger)', critical:'var(--danger)'};
+
+  const mainType = items[0].type;
+  document.getElementById('spot-title').textContent = typeLabels[mainType] || '📍 נקודה';
+
+  // Monthly chart for this spot
+  const months = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ'];
+  const counts = Array(12).fill(0);
+  items.forEach(d => { if (d.date) counts[new Date(d.date).getMonth()]++; });
+  const max = Math.max(...counts, 1);
+
+  const chartHtml = `
+    <div style="margin:12px 0 16px">
+      <div style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">דיווחים לפי חודש</div>
+      ${counts.map((c,i) => c > 0 ? `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <div style="width:36px;font-size:11px;color:var(--muted);text-align:right">${months[i]}</div>
+          <div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+            <div style="width:${c/max*100}%;height:100%;background:var(--accent);border-radius:4px"></div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);width:16px">${c}</div>
+        </div>` : '').join('')}
+    </div>`;
+
+  // Timeline of all reports for this spot
+  const timelineHtml = items.map(item => {
+    const dateStr = item.date ? new Date(item.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    const sev = item.severity;
+    return `
+      <div style="display:flex;gap:10px;padding:10px;background:var(--surface2);border-radius:10px;margin-bottom:8px">
+        <div style="font-size:22px;flex-shrink:0">${{trap:'🪤',report:'🚨',bag:'🛍️',volunteer:'🙋'}[item.type]||'📍'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;color:${sevColors[sev]||'var(--text)'}">
+            ${sevLabels[sev]||sev||'—'}
+            ${item.trapId ? `<span style="color:var(--muted);font-weight:400"> · ${item.trapId}</span>` : ''}
+          </div>
+          ${item.note ? `<div style="font-size:12px;color:var(--text);margin-top:2px">${item.note}</div>` : ''}
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">${dateStr}${item.name?' · '+item.name:''}</div>
+        </div>
+        ${item.photoUrl ? `<img src="${item.photoUrl}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display='none'">` : ''}
+      </div>`;
+  }).join('');
+
+  document.getElementById('spot-content').innerHTML = `
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${items.length} רשומות · ${spot.lat.toFixed(4)}, ${spot.lng.toFixed(4)}</div>
+    ${chartHtml}
+    <div style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">היסטוריה</div>
+    ${timelineHtml}`;
+
+  document.getElementById('modal-spot').classList.add('open');
 }
 
 // ===== DASHBOARD =====
@@ -958,6 +1128,11 @@ function renderTimeline() {
 function openModal(type) {
   document.getElementById('modal-' + type).classList.add('open');
   formData[type] = {};
+  // Set today as default date for trap
+  const dateInput = document.getElementById('trap-date-input');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
   // Init pin map if needed
   setTimeout(() => initPinMap(type), 100);
 }
@@ -1110,6 +1285,7 @@ async function submitForm(type) {
     name: (document.getElementById(type + '-name') || document.getElementById('volunteer-name') || {value:''}).value,
     phone: (document.getElementById('volunteer-phone') || {value:''}).value,
     trapId: (document.getElementById('trap-id-input') || {value:''}).value,
+    trapDate: (document.getElementById('trap-date-input') || {value:''}).value,
     photoUrl: '',
   };
 
@@ -1152,6 +1328,19 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===== CONFIRM CENTER =====
+function confirmCenter(type) {
+  const m = pinMaps[type];
+  if (!m) return;
+  const center = m.getCenter();
+  formData[type].lat = center.lat;
+  formData[type].lng = center.lng;
+  const status = document.getElementById(type + '-loc-status');
+  status.textContent = `✅ מיקום נבחר: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}`;
+  status.className = 'loc-status ok';
+  showToast('✅ מיקום אושר!');
 }
 
 // ===== INIT =====
