@@ -894,22 +894,31 @@ function initMap() {
 }
 
 // ===== DATA =====
-async function loadData() {
-  try {
-    const res = await fetch(SCRIPT_URL);
-    const raw = await res.json();
-    allData = raw.slice(1).filter(r => r[0]).map(r => ({
-      date: r[0], type: r[1], lat: parseFloat(r[2]), lng: parseFloat(r[3]),
-      severity: r[4], note: r[5], photoUrl: r[6], name: r[7], phone: r[8], trapId: r[9]
-    })).filter(r => !isNaN(r.lat));
-    
-    renderMapMarkers();
-    renderDashboard();
-    renderTimeline();
-    document.getElementById('last-update').textContent = 'עודכן: ' + new Date().toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'});
-  } catch(e) {
-    console.log('Load error:', e);
-  }
+function loadData() {
+  // Remove old script tag if exists
+  const old = document.getElementById('jsonp-script');
+  if (old) old.remove();
+
+  window._jsonpCallback = function(raw) {
+    try {
+      allData = raw.slice(1).filter(r => r[0]).map(r => ({
+        date: r[0], type: r[1], lat: parseFloat(r[2]), lng: parseFloat(r[3]),
+        severity: r[4], note: r[5], photoUrl: r[6], name: r[7], phone: r[8], trapId: r[9]
+      })).filter(r => !isNaN(r.lat));
+
+      renderMapMarkers();
+      renderDashboard();
+      renderTimeline();
+      document.getElementById('last-update').textContent = 'עודכן: ' + new Date().toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'});
+    } catch(e) {
+      console.log('Parse error:', e);
+    }
+  };
+
+  const script = document.createElement('script');
+  script.id = 'jsonp-script';
+  script.src = SCRIPT_URL + '?callback=_jsonpCallback&t=' + Date.now();
+  document.body.appendChild(script);
 }
 
 // ===== LAYERS =====
@@ -1166,10 +1175,18 @@ function initPinMap(type) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
-  
-  const m = L.map(containerId, { zoomControl: true }).setView([31.7154, 34.7586], 16);
+
+  const m = L.map(containerId, { zoomControl: true, tap: true, dragging: true }).setView([31.7154, 34.7586], 16);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(m);
   setTimeout(() => m.invalidateSize(), 200);
+
+  // מניעת גלילה של המודל כשהאצבע על המפה
+  container.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+  container.addEventListener('touchmove', e => { e.stopPropagation(); }, { passive: false });
+
+  // Prevent modal scroll when touching the map
+  container.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+  container.addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
   
   let marker = null;
   m.on('click', e => {
