@@ -988,12 +988,13 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // ===== PIN MAP =====
 function initPinMap(type) {
   const containerId = type + '-pin-map';
-  if (pinMaps[type]) return;
   const container = document.getElementById(containerId);
   if (!container) return;
+  container.innerHTML = '';
   
-  const m = L.map(containerId).setView([31.88, 34.90], 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(m);
+  const m = L.map(containerId, { zoomControl: true }).setView([31.88, 34.90], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(m);
+  setTimeout(() => m.invalidateSize(), 200);
   
   let marker = null;
   m.on('click', e => {
@@ -1015,9 +1016,12 @@ function toggleMapPicker(type) {
   wrap.style.display = isOpen ? 'none' : 'block';
   btn.classList.toggle('active', !isOpen);
   if (!isOpen) {
-    setTimeout(() => {
-      if (pinMaps[type]) pinMaps[type].invalidateSize();
-    }, 100);
+    // Destroy and recreate to fix tile/click issues
+    if (pinMaps[type]) {
+      pinMaps[type].remove();
+      pinMaps[type] = null;
+    }
+    setTimeout(() => initPinMap(type), 150);
   }
 }
 
