@@ -452,6 +452,18 @@ textarea.fi{resize:vertical;min-height:70px}
   <div id="lightbox-caption" style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:12px;font-family:Heebo,sans-serif;text-align:center"></div>
 </div>
 
+<!-- DELETE TRAP CHOICE MODAL -->
+<div class="overlay" id="overlay-delete-trap-choice">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-title">🗑️ מחיקת מלכודת</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:16px" id="dtc-trap-name"></div>
+    <button class="btn btn-yellow" onclick="deleteTrapChoice('trash')">✅ פונתה לאשפה — שמור בהיסטוריה</button>
+    <button class="btn btn-red" onclick="deleteTrapChoice('permanent')" style="margin-top:8px">🗑️ מחק לצמיתות — הסר מהסיסטם</button>
+    <button class="btn btn-grey" onclick="closeOverlay('delete-trap-choice')">ביטול</button>
+  </div>
+</div>
+
 <!-- VOLUNTEER MODAL -->
 <div class="overlay" id="overlay-volunteer">
   <div class="sheet">
@@ -595,7 +607,7 @@ function renderTrapCard(trap,done=false){
   const ub=!done&&days>=14?`<span class="badge bg-red">🔴 ${days}י׳ — דחוף</span>`:!done&&days>=10?`<span class="badge bg-yellow">🟡 ${days} יום</span>`:!done?`<span class="badge bg-grey">${days} יום</span>`:'';
   const tlHtml=updates.map(u=>{const uc={low:'var(--live)',med:'var(--warn)',high:'var(--danger)',done:'var(--muted)'}[u.severity]||'var(--muted)';const ul={low:'🟢 ריקה',med:'🟡 קצת מלאה',high:'🔴 מלאה',done:'✅ הושלכה לפח'}[u.severity]||u.severity;const ds=new Date(u.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});return `<div class="tl-item"><div class="tl-icon">📸</div><div class="tl-body"><div class="tl-sev" style="color:${uc}">${ul}</div>${u.note?`<div class="tl-note">${u.note}</div>`:''}<div class="tl-meta">${ds}${u.reporter?' · '+u.reporter:''}</div></div>${u.photoUrl?`<img class="tl-img" src="${u.photoUrl}" onclick="event.stopPropagation();openLightbox('${u.photoUrl}','${u.severity||''} · ${u.reporter||''}')" style="cursor:pointer" onerror="this.style.display='none'">`:''}</div>`;}).join('');
   const fe=`<div class="tl-item"><div class="tl-icon">🪤</div><div class="tl-body"><div class="tl-sev" style="color:var(--accent)">הותקנה</div>${trap.note?`<div class="tl-note">${trap.note}</div>`:''}<div class="tl-meta">${new Date(trap.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}${trap.reporter?' · '+trap.reporter:''}</div></div>${trap.photoUrl?`<img class="tl-img" src="${trap.photoUrl}" onclick="event.stopPropagation();openLightbox('${trap.photoUrl}','הותקנה · ${trap.reporter||''}')" style="cursor:pointer" onerror="this.style.display='none'">`:''}</div>`;
-  return `<div class="trap-card"><div class="trap-header" onclick="toggleTrapBody('${trap.id}')"><div class="trap-dot" style="background:${sc}"></div><div class="trap-info"><div class="trap-name">${trap.name}</div><div class="trap-meta" style="color:${sc}">${sl} ${ub}</div></div><div class="trap-chevron" id="chev-${trap.id}">▾</div></div><div class="trap-body" id="body-${trap.id}">${tlHtml}${fe}${!done?`<button class="add-update-btn" data-action="add-update" data-trap-id="${trap.id}" data-trap-name="${trap.name}">+ הוסף עדכון</button><button class="add-update-btn" data-action="delete-trap" data-trap-id="${trap.id}" data-trap-name="${trap.name}" style="color:var(--danger);border-color:var(--danger);margin-top:5px">🗑️ מחק מלכודת</button>`:''}</div></div>`;
+  return `<div class="trap-card"><div class="trap-header" onclick="toggleTrapBody('${trap.id}')"><div class="trap-dot" style="background:${sc}"></div><div class="trap-info"><div class="trap-name">${trap.name}</div><div class="trap-meta" style="color:${sc}">${sl} ${ub}</div></div><div class="trap-chevron" id="chev-${trap.id}">▾</div></div><div class="trap-body" id="body-${trap.id}">${tlHtml}${fe}${!done?`<button class="add-update-btn" data-action="add-update" data-trap-id="${trap.id}" data-trap-name="${trap.name}">📸 הוסף עדכון / שנה סטטוס</button><button class="add-update-btn" data-action="delete-trap" data-trap-id="${trap.id}" data-trap-name="${trap.name}" style="color:var(--danger);border-color:var(--danger);margin-top:5px">🗑️ מחק מלכודת</button>`:''}</div></div>`;
 }
 
 function toggleTrapBody(trapId){document.getElementById('body-'+trapId).classList.toggle('open');document.getElementById('chev-'+trapId).classList.toggle('open');}
