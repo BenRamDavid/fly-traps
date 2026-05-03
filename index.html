@@ -430,6 +430,13 @@ textarea.fi{resize:vertical;min-height:70px}
   </div>
 </div>
 
+<!-- PHOTO LIGHTBOX -->
+<div id="photo-lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:4000;align-items:center;justify-content:center;flex-direction:column" onclick="closeLightbox()">
+  <button style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.1);border:none;border-radius:50%;width:40px;height:40px;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+  <img id="lightbox-img" style="max-width:95vw;max-height:80vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.8)">
+  <div id="lightbox-caption" style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:12px;font-family:Heebo,sans-serif;text-align:center"></div>
+</div>
+
 <div id="map-picker-overlay">
   <div class="mp-header">
     <button class="mp-close" onclick="closeMapPicker()">✕</button>
@@ -541,8 +548,8 @@ function renderTrapCard(trap,done=false){
   const sc={low:'var(--live)',med:'var(--warn)',high:'var(--danger)',done:'var(--muted)'}[currentSev]||'var(--muted)';
   const sl={low:'🟢 ריקה',med:'🟡 קצת מלאה',high:'🔴 מלאה',done:'✅ הושלכה'}[currentSev]||currentSev;
   const ub=!done&&days>=14?`<span class="badge bg-red">🔴 ${days}י׳ — דחוף</span>`:!done&&days>=10?`<span class="badge bg-yellow">🟡 ${days} יום</span>`:!done?`<span class="badge bg-grey">${days} יום</span>`:'';
-  const tlHtml=updates.map(u=>{const uc={low:'var(--live)',med:'var(--warn)',high:'var(--danger)',done:'var(--muted)'}[u.severity]||'var(--muted)';const ul={low:'🟢 ריקה',med:'🟡 קצת מלאה',high:'🔴 מלאה',done:'✅ הושלכה לפח'}[u.severity]||u.severity;const ds=new Date(u.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});return `<div class="tl-item"><div class="tl-icon">📸</div><div class="tl-body"><div class="tl-sev" style="color:${uc}">${ul}</div>${u.note?`<div class="tl-note">${u.note}</div>`:''}<div class="tl-meta">${ds}${u.reporter?' · '+u.reporter:''}</div></div>${u.photoUrl?`<img class="tl-img" src="${u.photoUrl}" onerror="this.style.display='none'">`:''}</div>`;}).join('');
-  const fe=`<div class="tl-item"><div class="tl-icon">🪤</div><div class="tl-body"><div class="tl-sev" style="color:var(--accent)">הותקנה</div>${trap.note?`<div class="tl-note">${trap.note}</div>`:''}<div class="tl-meta">${new Date(trap.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}${trap.reporter?' · '+trap.reporter:''}</div></div>${trap.photoUrl?`<img class="tl-img" src="${trap.photoUrl}" onerror="this.style.display='none'">`:''}</div>`;
+  const tlHtml=updates.map(u=>{const uc={low:'var(--live)',med:'var(--warn)',high:'var(--danger)',done:'var(--muted)'}[u.severity]||'var(--muted)';const ul={low:'🟢 ריקה',med:'🟡 קצת מלאה',high:'🔴 מלאה',done:'✅ הושלכה לפח'}[u.severity]||u.severity;const ds=new Date(u.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});return `<div class="tl-item"><div class="tl-icon">📸</div><div class="tl-body"><div class="tl-sev" style="color:${uc}">${ul}</div>${u.note?`<div class="tl-note">${u.note}</div>`:''}<div class="tl-meta">${ds}${u.reporter?' · '+u.reporter:''}</div></div>${u.photoUrl?`<img class="tl-img" src="${u.photoUrl}" onclick="event.stopPropagation();openLightbox('${u.photoUrl}','${u.severity||''} · ${u.reporter||''}')" style="cursor:pointer" onerror="this.style.display='none'">`:''}</div>`;}).join('');
+  const fe=`<div class="tl-item"><div class="tl-icon">🪤</div><div class="tl-body"><div class="tl-sev" style="color:var(--accent)">הותקנה</div>${trap.note?`<div class="tl-note">${trap.note}</div>`:''}<div class="tl-meta">${new Date(trap.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}${trap.reporter?' · '+trap.reporter:''}</div></div>${trap.photoUrl?`<img class="tl-img" src="${trap.photoUrl}" onclick="event.stopPropagation();openLightbox('${trap.photoUrl}','הותקנה · ${trap.reporter||''}')" style="cursor:pointer" onerror="this.style.display='none'">`:''}</div>`;
   return `<div class="trap-card"><div class="trap-header" onclick="toggleTrapBody('${trap.id}')"><div class="trap-dot" style="background:${sc}"></div><div class="trap-info"><div class="trap-name">${trap.name}</div><div class="trap-meta" style="color:${sc}">${sl} ${ub}</div></div><div class="trap-chevron" id="chev-${trap.id}">▾</div></div><div class="trap-body" id="body-${trap.id}">${tlHtml}${fe}${!done?`<button class="add-update-btn" data-action="add-update" data-trap-id="${trap.id}" data-trap-name="${trap.name}">+ הוסף עדכון</button><button class="add-update-btn" data-action="delete-trap" data-trap-id="${trap.id}" data-trap-name="${trap.name}" style="color:var(--danger);border-color:var(--danger);margin-top:5px">🗑️ מחק מלכודת</button>`:''}</div></div>`;
 }
 
@@ -618,7 +625,10 @@ async function saveTrap(){
   if(!sev){showToast('⚠️ נא לבחור סטטוס');return;}
   const station=db.stations.find(s=>s.id===currentStationId);
   const btn=document.getElementById('at-save-btn');btn.disabled=true;btn.innerHTML='<span class="loading-spin"></span>שומר...';
-  await postData({rowType:'trap',id:'TR'+Date.now(),parentId:currentStationId,name,lat:station?station.lat:'',lng:station?station.lng:'',severity:sev,note:'',photoUrl:'',reporter,status:'active',extra:dateVal});
+  const station2=station;
+  const photoBase64=(window._photoData&&window._photoData['at'])||'';
+  if(window._photoData)delete window._photoData['at'];
+  await postData({rowType:'trap',id:'TR'+Date.now(),parentId:currentStationId,name,lat:station2?station2.lat:'',lng:station2?station2.lng:'',severity:sev,note:'',photoBase64,stationName:station2?station2.name:'',reporter,status:'active',extra:dateVal});
   showToast('✅ מלכודת נוספה!');closeOverlay('add-trap');
   document.getElementById('at-reporter').value='';btn.disabled=false;btn.textContent='🪤 הוסף מלכודת';
   setTimeout(()=>{loadData();setTimeout(()=>openStationSite(currentStationId),1600);},200);
@@ -639,8 +649,12 @@ async function saveUpdate(){
   if(!sev){showToast('⚠️ נא לבחור סטטוס');return;}
   if(!reporter){showToast('⚠️ נא להכניס שמך');return;}
   const btn=document.getElementById('au-save-btn');btn.disabled=true;btn.innerHTML='<span class="loading-spin"></span>שולח...';
+  const photoBase64Au=(window._photoData&&window._photoData['au'])||'';if(window._photoData)delete window._photoData['au'];
+  const trapForStation=db.traps.find(t=>t.id===currentTrapId);
+  const stationForPhoto=trapForStation?db.stations.find(s=>s.id===trapForStation.stationId):null;
+  const stationNameForPhoto=stationForPhoto?stationForPhoto.name:'כללי';
   if(sev==='done')await postData({rowType:'trapStatus',id:currentTrapId,parentId:'',name:'',lat:'',lng:'',severity:'done',note,photoUrl:'',reporter,status:'done',extra:''});
-  await postData({rowType:'update',id:'UP'+Date.now(),parentId:currentTrapId,name:'',lat:'',lng:'',severity:sev,note,photoUrl:'',reporter,status:'',extra:''});
+  await postData({rowType:'update',id:'UP'+Date.now(),parentId:currentTrapId,name:'',lat:'',lng:'',severity:sev,note,photoBase64:photoBase64Au,stationName:stationNameForPhoto,reporter,status:'',extra:''});
   showToast('✅ עדכון נשלח!');closeOverlay('add-update');
   btn.disabled=false;btn.textContent='✅ שלח עדכון';
   setTimeout(()=>{loadData();setTimeout(()=>openStationSite(currentStationId),1600);},200);
@@ -730,7 +744,15 @@ function confirmMapPicker(){if(!mapPickerMap)return;const c=mapPickerMap.getCent
 function handlePhoto(prefix,input){
   const file=input.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=e=>{const prev=document.getElementById(prefix+'-photo-prev');const ph=document.getElementById(prefix+'-photo-ph');if(prev){prev.src=e.target.result;prev.style.display='block';}if(ph)ph.style.display='none';};
+  reader.onload=e=>{
+    const prev=document.getElementById(prefix+'-photo-prev');
+    const ph=document.getElementById(prefix+'-photo-ph');
+    if(prev){prev.src=e.target.result;prev.style.display='block';}
+    if(ph)ph.style.display='none';
+    // Store base64 for upload
+    if(!window._photoData)window._photoData={};
+    window._photoData[prefix]=e.target.result;
+  };
   reader.readAsDataURL(file);
 }
 
@@ -770,6 +792,17 @@ function toggleTheme(){
 function haptic(type){if(!navigator.vibrate)return;const p={light:[10],medium:[20],success:[10,50,10],error:[50,30,50]};if(p[type])navigator.vibrate(p[type]);}
 function getDaysOld(trap){const d=trap.extra||trap.date;if(!d)return 0;return Math.floor((Date.now()-new Date(d))/86400000);}
 function copyLink(lat,lng){navigator.clipboard.writeText(`https://maps.google.com/?q=${lat},${lng}`).then(()=>showToast('🔗 קישור הועתק!'));}
+function openLightbox(src, caption) {
+  const lb = document.getElementById('photo-lightbox');
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-caption').textContent = caption || '';
+  lb.style.display = 'flex';
+  haptic('light');
+}
+function closeLightbox() {
+  document.getElementById('photo-lightbox').style.display = 'none';
+}
+
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(msg.includes('✅'))haptic('success');setTimeout(()=>t.classList.remove('show'),2500);}
 
 window.addEventListener('load',()=>{
