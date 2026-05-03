@@ -54,6 +54,7 @@ body.light .brand-icon{box-shadow:0 0 14px rgba(2,132,199,0.2)}
 .fab:active{transform:scale(0.91)}
 .fab-add{background:var(--accent);color:#0f172a;font-size:26px;font-weight:900}
 .fab-report{background:var(--danger);color:#fff}
+.fab-vol{background:var(--live);color:#0f172a;font-size:24px}
 
 .nav-bar{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--nav-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:1000;padding-bottom:env(safe-area-inset-bottom)}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:10px;font-weight:600;cursor:pointer;transition:color 0.2s;text-transform:uppercase;letter-spacing:0.4px}
@@ -143,6 +144,7 @@ textarea.fi{resize:vertical;min-height:70px}
 .btn-red{background:var(--danger);color:#fff}
 .btn-grey{background:var(--card2);color:var(--text2);border:1px solid var(--border)}
 .btn-purple{background:var(--trap);color:#fff}
+.btn-sparkle{background:linear-gradient(135deg, #a855f7, #3b82f6); color: white; display: flex; align-items: center; justify-content: center; gap: 8px;}
 
 .status-bar{display:flex;gap:7px;padding:10px 16px;background:var(--card2);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
 .status-pill{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0;text-transform:uppercase;letter-spacing:0.3px}
@@ -164,7 +166,7 @@ textarea.fi{resize:vertical;min-height:70px}
 .tl-sev{font-size:12px;font-weight:700}
 .tl-note{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.4}
 .tl-meta{font-size:11px;color:var(--muted);margin-top:3px}
-.tl-img{width:52px;height:52px;border-radius:var(--radius-sm);object-fit:cover;flex-shrink:0}
+.tl-img{width:52px;height:52px;border-radius:var(--radius-sm);object-fit:cover;flex-shrink:0;cursor:pointer;}
 .add-update-btn{width:100%;padding:10px;border-radius:var(--radius-sm);border:1px dashed var(--border);background:transparent;color:var(--accent);font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;transition:background 0.15s}
 .add-update-btn:active{background:rgba(56,189,248,0.07)}
 .add-trap-btn{display:block;width:calc(100% - 32px);margin:4px 16px 0;padding:12px;border-radius:var(--radius-sm);border:1px dashed var(--border);background:transparent;color:var(--trap);font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s}
@@ -196,6 +198,10 @@ textarea.fi{resize:vertical;min-height:70px}
 .mp-footer{background:var(--card);border-top:1px solid var(--border);padding:14px 16px 30px;flex-shrink:0}
 .mp-confirm{width:100%;padding:14px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#0f172a;font-family:'Heebo',sans-serif;font-size:15px;font-weight:800;cursor:pointer}
 
+.ai-box { background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative; overflow: hidden; }
+.ai-box::before { content: '✨'; position: absolute; left: 10px; top: 10px; opacity: 0.3; font-size: 20px; }
+.vol-list-item { background:var(--card2); padding:10px; border-radius:10px; margin-bottom:8px; display:flex; align-items:center; gap:10px; cursor:pointer; border:1px solid transparent; transition:background 0.2s;}
+
 .loading-spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.2);border-top-color:currentColor;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:5px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .empty{text-align:center;padding:44px 20px;color:var(--muted)}
@@ -204,6 +210,14 @@ textarea.fi{resize:vertical;min-height:70px}
 .c-green{color:var(--live)}.c-yellow{color:var(--warn)}.c-red{color:var(--danger)}.c-blue{color:var(--accent)}.c-purple{color:var(--trap)}.c-muted{color:var(--muted)}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.vol-completed { opacity: 0.6; filter: grayscale(0.5); }
+.station-group-title { font-size:12px; font-weight:900; color:var(--accent); margin:12px 0 6px 0; }
+
+/* Map Selection Mode UI */
+#vol-map-ui { display:none; position:absolute; inset:0; z-index:900; pointer-events:none; flex-direction:column; justify-content:space-between; }
+.vmu-header { background:var(--card); border-bottom:1px solid var(--border); padding:16px; display:flex; justify-content:space-between; align-items:center; pointer-events:all; box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+.vmu-footer { padding:16px; pointer-events:all; padding-bottom:18px; }
 </style>
 </head>
 <body>
@@ -228,7 +242,24 @@ textarea.fi{resize:vertical;min-height:70px}
     </div>
     <div class="map-fabs">
       <button class="fab fab-add" onclick="openAddStation()">+</button>
-      <button class="fab fab-report" onclick="openOverlay('report')">🚨</button>
+      <div>
+        <button class="fab fab-vol" onclick="openOverlay('vol-type')" style="margin-bottom: 10px;">🙋</button>
+        <button class="fab fab-report" onclick="openOverlay('report')">🚨</button>
+      </div>
+    </div>
+    
+    <!-- UI למצב בחירת התנדבות מהמפה -->
+    <div id="vol-map-ui">
+      <div class="vmu-header">
+        <div>
+          <div style="font-weight:900; font-size:15px; color:var(--text)">🗺️ בחר עמדות לפינוי</div>
+          <div style="font-size:11px; color:var(--muted)">לחץ על עמדות אדומות/צהובות במפה</div>
+        </div>
+        <button onclick="exitVolMapMode()" class="btn-grey" style="padding:6px 12px; border-radius:8px; font-size:12px; margin:0; width:auto">ביטול</button>
+      </div>
+      <div class="vmu-footer">
+        <button id="vol-map-continue-btn" class="btn btn-primary" onclick="proceedVolPickup()" disabled style="box-shadow:0 4px 16px rgba(0,0,0,0.4)">המשך (0 שקיות נבחרו)</button>
+      </div>
     </div>
   </div>
 </div>
@@ -259,9 +290,11 @@ textarea.fi{resize:vertical;min-height:70px}
   <div class="page-pad">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div class="page-title" style="margin:0">יומן אחריות</div>
-      <button onclick="openVolunteer()" style="background:var(--live);border:none;border-radius:10px;padding:8px 14px;color:#0f172a;font-family:Heebo,sans-serif;font-size:13px;font-weight:700;cursor:pointer">+ התנדב</button>
+      <button onclick="openOverlay('vol-type')" style="background:var(--live);border:none;border-radius:10px;padding:8px 14px;color:#0f172a;font-family:Heebo,sans-serif;font-size:13px;font-weight:700;cursor:pointer">+ התנדב</button>
     </div>
-    <div id="volunteers-list"></div>
+    <div class="ai-box" id="community-insight" style="display:none; font-size:13px; color:var(--text);"></div>
+    <button class="btn btn-sparkle" id="ai-insight-btn" onclick="generateCommunityInsight()">✨ סיכום מצב קהילתי AI</button>
+    <div id="volunteers-list" style="margin-top:16px"></div>
   </div>
 </div>
 
@@ -380,7 +413,9 @@ textarea.fi{resize:vertical;min-height:70px}
       </div>
     </div>
     <div class="fg"><label class="fl">תמונה (אופציונלי)</label>
-      <div class="photo-area"><input type="file" accept="image/*" capture="environment" onchange="handlePhoto('au',this)"><div id="au-photo-ph">📷 צלם או העלה</div><img id="au-photo-prev" class="photo-preview"></div>
+      <div class="photo-area"><input type="file" accept="image/*" capture="environment" onchange="handlePhoto('au',this)"><div id="au-photo-ph">📷 צלם או העלה</div><img id="au-photo-prev" class="photo-preview">
+      <button class="btn btn-sparkle" id="au-analyze-btn" onclick="analyzePhoto('au-photo-prev', 'au-note', 'au-analyze-btn')" style="margin-top:10px; display:none; padding:8px; font-size:12px; position:relative; z-index:5;">✨ נתח תמונה עם AI</button>
+      </div>
     </div>
     <div class="fg"><label class="fl">הערה (אופציונלי)</label><textarea class="fi" id="au-note" placeholder="תאר את המצב..."></textarea></div>
     <div class="fg"><label class="fl">שמך (חובה)</label><input class="fi" id="au-reporter" placeholder="ישראל ישראלי"></div>
@@ -414,7 +449,9 @@ textarea.fi{resize:vertical;min-height:70px}
       <div class="loc-status" id="rep-loc-status">לא נבחר מיקום</div>
     </div>
     <div class="fg"><label class="fl">תמונה (אופציונלי)</label>
-      <div class="photo-area"><input type="file" accept="image/*" capture="environment" onchange="handlePhoto('rep',this)"><div id="rep-photo-ph">📷 צלם או העלה</div><img id="rep-photo-prev" class="photo-preview"></div>
+      <div class="photo-area"><input type="file" accept="image/*" capture="environment" onchange="handlePhoto('rep',this)"><div id="rep-photo-ph">📷 צלם או העלה</div><img id="rep-photo-prev" class="photo-preview">
+      <button class="btn btn-sparkle" id="report-ai-btn" onclick="analyzePhoto('rep-photo-prev', 'rep-note', 'report-ai-btn')" style="margin-top:10px; display:none; padding:8px; font-size:12px; position:relative; z-index:5;">✨ נתח תמונה עם AI</button>
+      </div>
     </div>
     <div class="fg"><label class="fl">הערה (אופציונלי)</label><textarea class="fi" id="rep-note" placeholder="תאר את הבעיה..."></textarea></div>
     <div class="fg"><label class="fl">שמך (חובה)</label><input class="fi" id="rep-reporter" placeholder="ישראל ישראלי"></div>
@@ -439,7 +476,7 @@ textarea.fi{resize:vertical;min-height:70px}
   <div class="sheet">
     <div class="handle"></div>
     <div class="sheet-title" id="confirm-title">אישור</div>
-    <div style="font-size:14px;color:var(--muted);margin-bottom:16px" id="confirm-msg"></div>
+    <div style="font-size:14px;color:var(--text);margin-bottom:16px" id="confirm-msg"></div>
     <button class="btn btn-red" onclick="confirmYes()">✅ כן, אשר</button>
     <button class="btn btn-grey" onclick="closeOverlay('confirm')">ביטול</button>
   </div>
@@ -464,31 +501,107 @@ textarea.fi{resize:vertical;min-height:70px}
   </div>
 </div>
 
-<!-- VOLUNTEER MODAL -->
-<div class="overlay" id="overlay-volunteer">
+<!-- VOLUNTEER TYPE MODAL -->
+<div class="overlay" id="overlay-vol-type">
   <div class="sheet">
     <div class="handle"></div>
-    <div class="sheet-title">🙋 התנדבות</div>
-    <div class="fg"><label class="fl">סוג התנדבות</label>
-      <div class="sev-group" style="grid-template-columns:1fr 1fr">
-        <button class="sev-btn" onclick="setSev('vol','throw',this)"><span class="si">🗑️</span>זריקה לפח</button>
-        <button class="sev-btn" onclick="setSev('vol','spread',this)"><span class="si">🪤</span>פיזור מלכודות</button>
-      </div>
-    </div>
-    <div class="fg"><label class="fl">עמדות רלוונטיות</label>
-      <div id="vol-stations-list" style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto"></div>
-    </div>
-    <div class="fg"><label class="fl">תאריך ושעה</label>
-      <input type="datetime-local" class="fi" id="vol-datetime">
+    <div class="sheet-title">🙋 התנדבות — בחר סוג</div>
+    <button class="btn" style="background:var(--card2);border:2px solid var(--border);color:var(--text);margin-top:8px;padding:20px;border-radius:14px;text-align:right;font-size:15px" onclick="startVolMapMode()">
+      <div style="font-size:28px;margin-bottom:6px">🗑️</div>
+      <div style="font-weight:800">פינוי מלכודות</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">בחר עמדות ומלכודות מהמפה לפינוי</div>
+    </button>
+    <button class="btn" style="background:var(--card2);border:2px solid var(--border);color:var(--text);margin-top:10px;padding:20px;border-radius:14px;text-align:right;font-size:15px" onclick="openVolunteerForm('hang')">
+      <div style="font-size:28px;margin-bottom:6px">🪤</div>
+      <div style="font-weight:800">תליית מלכודת</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">תלה מלכודת בעמדה קיימת או חדשה</div>
+    </button>
+    <button class="btn btn-grey" onclick="closeOverlay('vol-type')">ביטול</button>
+  </div>
+</div>
+
+<!-- VOL STATION PICK (MAP MODE) -->
+<div class="overlay" id="overlay-vol-station-pick">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-title" id="vsp-title">📍 בחירת שקיות לפינוי</div>
+    <div id="vsp-list" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;padding-right:4px;margin-bottom:16px"></div>
+    <button class="btn btn-primary" onclick="closeOverlay('vol-station-pick')">אישור וסגירה</button>
+  </div>
+</div>
+
+<!-- VOLUNTEER PICKUP FINAL MODAL -->
+<div class="overlay" id="overlay-vol-pickup-final">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-title">📝 פרטי התנדבות (פינוי)</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px" id="vol-pickup-summary"></div>
+    <div class="fg"><label class="fl">תאריך ביצוע מתוכנן</label>
+      <input type="date" class="fi" id="vol-pickup-datetime">
     </div>
     <div class="fg"><label class="fl">שמך (חובה)</label>
-      <input class="fi" id="vol-name" placeholder="ישראל ישראלי">
+      <input class="fi" id="vol-pickup-name" placeholder="ישראל ישראלי">
     </div>
     <div class="fg"><label class="fl">הערה (אופציונלי)</label>
-      <textarea class="fi" id="vol-note" placeholder="פרטים נוספים..."></textarea>
+      <textarea class="fi" id="vol-pickup-note" placeholder="פרטים נוספים..."></textarea>
     </div>
-    <button class="btn btn-green" onclick="saveVolunteer()" id="vol-save-btn">🙋 התנדב</button>
-    <button class="btn btn-grey" onclick="closeOverlay('volunteer')">ביטול</button>
+    <button class="btn btn-yellow" onclick="saveVolPickup()" id="vol-pickup-save-btn">🗑️ אשר התנדבות</button>
+    <button class="btn btn-grey" onclick="closeOverlay('vol-pickup-final')">חזור למפה</button>
+  </div>
+</div>
+
+<!-- VOLUNTEER HANG MODAL -->
+<div class="overlay" id="overlay-vol-hang">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-title">🪤 תליית מלכודת</div>
+    <div class="fg">
+      <label class="fl">באיזו עמדה?</label>
+      <div class="sev-group" style="grid-template-columns:1fr 1fr;margin-bottom:8px">
+        <button class="sev-btn sel-low" onclick="setHangMode('existing',this)"><span class="si">📍</span>עמדה קיימת</button>
+        <button class="sev-btn" onclick="setHangMode('new',this)"><span class="si">➕</span>עמדה חדשה</button>
+      </div>
+      <div id="vol-hang-existing" style="display:block">
+        <select class="fi" id="vol-hang-station-select">
+          <option value="">בחר עמדה...</option>
+        </select>
+      </div>
+      <div id="vol-hang-new" style="display:none">
+        <input class="fi" id="vol-hang-new-name" placeholder="שם העמדה החדשה">
+      </div>
+    </div>
+    <div class="fg"><label class="fl">תאריך ביצוע מתוכנן</label>
+      <input type="date" class="fi" id="vol-hang-datetime">
+    </div>
+    <div class="fg"><label class="fl">שמך (חובה)</label>
+      <input class="fi" id="vol-hang-name" placeholder="ישראל ישראלי">
+    </div>
+    <div class="fg"><label class="fl">הערה (אופציונלי)</label>
+      <textarea class="fi" id="vol-hang-note" placeholder="פרטים נוספים..."></textarea>
+    </div>
+    <button class="btn btn-green" onclick="saveVolHang()" id="vol-hang-save-btn">🪤 אני מתנדב לתלות</button>
+    <button class="btn btn-grey" onclick="closeOverlay('vol-hang')">ביטול</button>
+  </div>
+</div>
+
+<!-- VOLUNTEER COMPLETE MODAL -->
+<div class="overlay" id="overlay-vol-complete">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-title" id="vol-complete-title">✅ סימון ביצוע</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px" id="vol-complete-desc"></div>
+    <div class="fg"><label class="fl">תמונה (אופציונלי אך מומלץ)</label>
+      <div class="photo-area">
+        <input type="file" accept="image/*" capture="environment" onchange="handlePhoto('volc',this)">
+        <div id="volc-photo-ph">📷 צלם הוכחה</div>
+        <img id="volc-photo-prev" class="photo-preview">
+      </div>
+    </div>
+    <div class="fg"><label class="fl">הערה (אופציונלי)</label>
+      <textarea class="fi" id="vol-complete-note" placeholder="איך הלך?"></textarea>
+    </div>
+    <button class="btn btn-green" onclick="confirmVolComplete()" id="vol-complete-btn">✅ בוצע!</button>
+    <button class="btn btn-grey" onclick="closeOverlay('vol-complete')">ביטול</button>
   </div>
 </div>
 
@@ -511,12 +624,69 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbz00cvPOLtHggVbyPsfn67ORXFlw7n9E4rRlBr6ALik5wKCQ-mSHIEN46vfPYhbo7CP/exec';
-let db={stations:[],traps:[],updates:[],reports:[]};
+const apiKey = ""; 
+let db={stations:[],traps:[],updates:[],reports:[],volunteers:[]};
 let map,pinMaps={},pinData={};
 let currentStationId=null,currentTrapId=null;
 let formSev={},formSev2={};
 let layerGroups={stations:null,reports:null,volunteers:null};
 let confirmCallback=null,mapPickerMap=null,mapPickerCallback=null;
+
+// MAP MODE FOR VOLUNTEER
+let isVolMapMode = false;
+let selectedVolTraps = new Set();
+
+// --- AI Gemini Call ---
+async function geminiCall(prompt, base64Image = null) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+  const contents = [{ parts: [{ text: prompt }] }];
+  if (base64Image) {
+    contents[0].parts.push({ inlineData: { mimeType: "image/png", data: base64Image.split(',')[1] } });
+  }
+  const payload = { contents };
+  let retries = 0;
+  while (retries < 5) {
+    try {
+      const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await response.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "לא התקבלה תשובה מה-AI";
+    } catch (e) {
+      retries++;
+      await new Promise(r => setTimeout(r, Math.pow(2, retries) * 1000));
+    }
+  }
+  return "שגיאה בתקשורת עם ה-AI";
+}
+
+async function analyzePhoto(imgId, targetId, btnId) {
+  const img = document.getElementById(imgId);
+  const btn = document.getElementById(btnId);
+  if (!img.src) return;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spin"></span> מנתח...';
+  const prompt = "Please analyze this photo of a fly trap or hazard in an Israeli village (Moshav). Tell me in Hebrew: 1. Estimate how full it is (0-100%). 2. Give a very short observation. Keep it friendly and concise.";
+  const result = await geminiCall(prompt, img.src);
+  document.getElementById(targetId).value = result;
+  btn.disabled = false;
+  btn.innerHTML = '✨ נתח תמונה עם AI';
+  showToast("✨ ה-AI ניתח את התמונה");
+}
+
+async function generateCommunityInsight() {
+  const btn = document.getElementById('ai-insight-btn');
+  const box = document.getElementById('community-insight');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spin"></span> מחשב תובנות...';
+  
+  const dataContext = `Stations: ${db.stations.length}, Traps: ${db.traps.length}, Active Volunteers: ${db.volunteers.filter(v=>v.status==='בתהליך').length}`;
+  const prompt = `Based on this data for a Moshav fly control app: ${dataContext}. Write a short, friendly Hebrew update for the village board. Encourage volunteering if there are full traps. Use emojis.`;
+  
+  const result = await geminiCall(prompt);
+  box.innerHTML = `<strong>✨ עדכון קהילתי AI:</strong><br>${result.replace(/\n/g, '<br>')}`;
+  box.style.display = 'block';
+  btn.disabled = false;
+  btn.innerHTML = '✨ רענן תובנות AI';
+}
 
 function navigate(pageId,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -551,7 +721,7 @@ function toggleLayer(name,btn){const lg=layerGroups[name];if(!lg)return;if(map.h
 
 function loadData(){
   const old=document.getElementById('jsonp-loader');if(old)old.remove();
-  window._cb=function(raw){parseSheets(raw);renderMap();renderStationsList();renderDashboard();document.getElementById('last-sync').textContent='עודכן '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});};
+  window._cb=function(raw){parseSheets(raw);renderMap();renderStationsList();renderDashboard();if(document.getElementById('page-volunteers').classList.contains('active'))renderVolunteersList();document.getElementById('last-sync').textContent='עודכן '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});};
   const s=document.createElement('script');s.id='jsonp-loader';s.src=SCRIPT_URL+'?callback=_cb&t='+Date.now();document.body.appendChild(s);
 }
 
@@ -562,7 +732,7 @@ function parseSheets(raw){
   db.traps=pr(raw.traps,r=>({id:String(r[2]),stationId:String(r[3]),name:r[4],lat:parseFloat(r[5]),lng:parseFloat(r[6]),severity:r[7],note:r[8],photoUrl:r[9],reporter:r[10],status:r[11]||'active',date:r[0],extra:r[12]}));
   db.updates=pr(raw.updates,r=>({id:String(r[2]),trapId:String(r[3]),severity:r[7],note:r[8],photoUrl:r[9],reporter:r[10],date:r[0]}));
   db.reports=pr(raw.reports,r=>({id:String(r[2]),lat:parseFloat(r[5]),lng:parseFloat(r[6]),severity:r[7],subtype:r[12],note:r[8],reporter:r[10],date:r[0]}));
-  db.volunteers=pr(raw.volunteers||[],r=>({id:String(r[2]),name:r[4],severity:r[7],note:r[8],reporter:r[10],extra:r[12],date:r[0]}));
+  db.volunteers=pr(raw.volunteers||[],r=>({id:String(r[2]),parentId:String(r[3]),name:r[4],severity:r[7],note:r[8],reporter:r[10],status:r[11]||'active',extra:r[12],date:r[0]}));
 }
 
 function renderMap(){
@@ -571,9 +741,20 @@ function renderMap(){
     const traps=db.traps.filter(t=>t.stationId===station.id&&t.status==='active');
     const urgent=traps.filter(t=>getDaysOld(t)>=14).length;
     const color=urgent>0?'#ef4444':traps.length>0?'#38bdf8':'#475569';
-    const icon=L.divIcon({className:'',html:`<div style="position:relative;width:32px;height:32px"><div style="position:absolute;inset:0;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};border:2px solid rgba(255,255,255,0.8);box-shadow:0 3px 10px rgba(0,0,0,0.4)"></div>${traps.length>0?`<div style="position:absolute;top:-4px;right:-4px;background:${urgent>0?'#ef4444':'#10b981'};color:white;width:15px;height:15px;border-radius:50%;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;border:1.5px solid white">${traps.length}</div>`:''}</div>`,iconSize:[32,40],iconAnchor:[16,40]});
+    
+    // Dim stations in volunteer map mode if they have no needy traps
+    let opacity = 1;
+    if (isVolMapMode) {
+        const needyTraps = traps.filter(t => t.severity === 'high' || getDaysOld(t) >= 10);
+        if (needyTraps.length === 0) opacity = 0.4;
+    }
+
+    const icon=L.divIcon({className:'',html:`<div style="position:relative;width:32px;height:32px;opacity:${opacity}"><div style="position:absolute;inset:0;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};border:2px solid rgba(255,255,255,0.8);box-shadow:0 3px 10px rgba(0,0,0,0.4)"></div>${traps.length>0?`<div style="position:absolute;top:-4px;right:-4px;background:${urgent>0?'#ef4444':'#10b981'};color:white;width:15px;height:15px;border-radius:50%;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;border:1.5px solid white">${traps.length}</div>`:''}</div>`,iconSize:[32,40],iconAnchor:[16,40]});
     const m=L.marker([station.lat,station.lng],{icon}).addTo(layerGroups.stations);
-    m.on('click',()=>openStationSite(station.id));
+    m.on('click',()=> {
+        if (isVolMapMode) openVolStationPick(station.id);
+        else openStationSite(station.id);
+    });
   });
   db.reports.filter(r=>!isNaN(r.lat)).forEach(rep=>{
     const color=rep.severity==='high'?'#ef4444':rep.severity==='med'?'#f59e0b':'#10b981';
@@ -607,10 +788,15 @@ function renderTrapCard(trap,done=false){
   const ub=!done&&days>=14?`<span class="badge bg-red">🔴 ${days}י׳ — דחוף</span>`:!done&&days>=10?`<span class="badge bg-yellow">🟡 ${days} יום</span>`:!done?`<span class="badge bg-grey">${days} יום</span>`:'';
   const tlHtml=updates.map(u=>{const uc={low:'var(--live)',med:'var(--warn)',high:'var(--danger)',done:'var(--muted)'}[u.severity]||'var(--muted)';const ul={low:'🟢 ריקה',med:'🟡 קצת מלאה',high:'🔴 מלאה',done:'✅ הושלכה לפח'}[u.severity]||u.severity;const ds=new Date(u.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});return `<div class="tl-item"><div class="tl-icon">📸</div><div class="tl-body"><div class="tl-sev" style="color:${uc}">${ul}</div>${u.note?`<div class="tl-note">${u.note}</div>`:''}<div class="tl-meta">${ds}${u.reporter?' · '+u.reporter:''}</div></div>${u.photoUrl?`<img class="tl-img" src="${u.photoUrl}" onclick="event.stopPropagation();openLightbox('${u.photoUrl}','${u.severity||''} · ${u.reporter||''}')" style="cursor:pointer" onerror="this.style.display='none'">`:''}</div>`;}).join('');
   const fe=`<div class="tl-item"><div class="tl-icon">🪤</div><div class="tl-body"><div class="tl-sev" style="color:var(--accent)">הותקנה</div>${trap.note?`<div class="tl-note">${trap.note}</div>`:''}<div class="tl-meta">${new Date(trap.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}${trap.reporter?' · '+trap.reporter:''}</div></div>${trap.photoUrl?`<img class="tl-img" src="${trap.photoUrl}" onclick="event.stopPropagation();openLightbox('${trap.photoUrl}','הותקנה · ${trap.reporter||''}')" style="cursor:pointer" onerror="this.style.display='none'">`:''}</div>`;
-  return `<div class="trap-card"><div class="trap-header" onclick="toggleTrapBody('${trap.id}')"><div class="trap-dot" style="background:${sc}"></div><div class="trap-info"><div class="trap-name">${trap.name}</div><div class="trap-meta" style="color:${sc}">${sl} ${ub}</div></div><div class="trap-chevron" id="chev-${trap.id}">▾</div></div><div class="trap-body" id="body-${trap.id}">${tlHtml}${fe}${!done?`<button class="add-update-btn" data-action="add-update" data-trap-id="${trap.id}" data-trap-name="${trap.name}">📸 הוסף עדכון / שנה סטטוס</button><button class="add-update-btn" data-action="delete-trap" data-trap-id="${trap.id}" data-trap-name="${trap.name}" style="color:var(--danger);border-color:var(--danger);margin-top:5px">🗑️ מחק מלכודת</button>`:''}</div></div>`;
+  return `<div class="trap-card"><div class="trap-header" onclick="toggleTrapBody('${trap.id}')"><div class="trap-dot" style="background:${sc}"></div><div class="trap-info"><div class="trap-name">${trap.name}</div><div class="trap-meta" style="color:${sc}">${sl} ${ub}</div></div><div class="trap-chevron" id="chev-${trap.id}">▾</div></div><div class="trap-body" id="body-${trap.id}">${tlHtml}${fe}<button class="add-update-btn" data-action="add-update" data-trap-id="${trap.id}" data-trap-name="${trap.name}">📸 הוסף עדכון / שנה סטטוס</button>${done ? `<button class="add-update-btn" data-action="restore-trap" data-trap-id="${trap.id}" data-trap-name="${trap.name}" style="color:var(--live);border-color:var(--live);margin-top:5px">♻️ שחזר כפעילה</button>` : ""}<button class="add-update-btn" data-action="delete-trap-choice" data-trap-id="${trap.id}" data-trap-name="${trap.name}" style="color:var(--danger);border-color:var(--danger);margin-top:5px">🗑️ מחק מלכודת</button></div></div>`;
 }
 
-function toggleTrapBody(trapId){document.getElementById('body-'+trapId).classList.toggle('open');document.getElementById('chev-'+trapId).classList.toggle('open');}
+function toggleTrapBody(trapId){
+  const body = document.getElementById('body-'+trapId);
+  const chev = document.getElementById('chev-'+trapId);
+  if (body) body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open');
+}
 
 function renderStationsList(){
   const el=document.getElementById('stations-list');
@@ -644,6 +830,337 @@ function renderDashboard(){
   document.getElementById('d-chart').innerHTML=counts.map((c,i)=>`<div class="bar-row"><div class="bar-lbl">${months[i]}</div><div class="bar-track"><div class="bar-fill" style="width:${c/max*100}%"></div></div><div class="bar-val">${c||''}</div></div>`).join('');
 }
 
+// ── VOLUNTEER MAP & FUNCTIONS ──
+
+function startVolMapMode() {
+  closeOverlay('vol-type');
+  navigate('map', document.querySelector('.nav-item')); // עובר לטאב מפה
+  isVolMapMode = true;
+  selectedVolTraps.clear();
+  document.getElementById('vol-map-ui').style.display = 'flex';
+  document.querySelector('.map-fabs').style.display = 'none';
+  document.querySelector('.map-controls').style.display = 'none';
+  updateVolMapFooter();
+  renderMap(); 
+  showToast('🗺️ בחר עמדות מהמפה כדי לפנות מלכודות');
+}
+
+function exitVolMapMode() {
+  isVolMapMode = false;
+  selectedVolTraps.clear();
+  document.getElementById('vol-map-ui').style.display = 'none';
+  document.querySelector('.map-fabs').style.display = 'flex';
+  document.querySelector('.map-controls').style.display = 'flex';
+  renderMap();
+}
+
+function updateVolMapFooter() {
+  const btn = document.getElementById('vol-map-continue-btn');
+  const count = selectedVolTraps.size;
+  btn.textContent = `המשך (${count} שקיות נבחרו)`;
+  btn.disabled = count === 0;
+}
+
+function openVolStationPick(stationId) {
+  const station = db.stations.find(s => s.id === stationId);
+  if(!station) return;
+  document.getElementById('vsp-title').textContent = '📍 ' + station.name;
+  const traps = db.traps.filter(t => t.stationId === stationId && t.status === 'active');
+  const needy = traps.filter(t => t.severity === 'high' || getDaysOld(t) >= 10);
+
+  // מזהה מלכודות שכבר בטיפול ע"י מתנדבים אחרים
+  const claimedTraps = {};
+  db.volunteers.filter(v => v.status === 'בתהליך' && v.severity === 'pickup').forEach(v => {
+    if(v.parentId) {
+      v.parentId.split(',').forEach(tid => {
+        claimedTraps[tid] = { name: v.reporter, date: v.extra || v.date };
+      });
+    }
+  });
+
+  const list = document.getElementById('vsp-list');
+  if (needy.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);padding:10px;text-align:center">הכל תקין כאן! אין מלכודות דחופות לפינוי בעמדה זו.</div>';
+  } else {
+    list.innerHTML = needy.map(t => {
+      const isChecked = selectedVolTraps.has(t.id) ? 'checked' : '';
+      const claim = claimedTraps[t.id];
+      const safeName = claim ? claim.name.replace(/"/g, '&quot;') : '';
+      const claimAttrs = claim ? `data-claimed-by="${safeName}" data-claimed-date="${claim.date}"` : '';
+      const claimHtml = claim ? `<div style="font-size:11px;color:var(--warn);margin-top:3px;font-weight:700">🔒 מתוכנן לפינוי ע"י ${safeName}</div>` : '';
+
+      return `
+      <label class="vol-list-item" style="cursor:pointer; ${getDaysOld(t) >= 14 || t.severity === 'high' ? 'border:1px solid var(--danger);background:rgba(239,68,68,0.05);' : ''}">
+        <input type="checkbox" id="v-trap-${t.id}" value="${t.id}" ${isChecked} ${claimAttrs} onchange="handleTrapCheck(this, '${t.id}')" style="transform:scale(1.2)">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700">${t.name}</div>
+          <div style="font-size:11px;color:var(--muted)">
+            ${t.severity === 'high' ? '🔴 מלאה' : t.severity === 'med' ? '🟡 קצת מלאה' : '🟢 ריקה'} · ${getDaysOld(t)} ימים בשטח
+          </div>
+          ${claimHtml}
+        </div>
+      </label>`;
+    }).join('');
+  }
+  openOverlay('vol-station-pick');
+}
+
+function handleTrapCheck(cb, trapId) {
+  if (cb.checked && cb.dataset.claimedBy) {
+    cb.checked = false; // מונע בחירה מיידית
+    showConfirm('⚠️ מלכודת תפוסה',
+      `מלכודת זו כבר מתוכננת לפינוי ע"י ${cb.dataset.claimedBy} בתאריך ${new Date(cb.dataset.claimedDate).toLocaleDateString('he-IL')}.\nהאם ברצונך לקחת אחריות ולפנות במקומו?`,
+      () => {
+        const actualCb = document.getElementById('v-trap-' + trapId);
+        if(actualCb) {
+          actualCb.checked = true;
+          actualCb.dataset.claimedBy = ''; // מנקה כדי שלא יקפוץ שוב
+          toggleVolTrap(trapId, true);
+        }
+      }
+    );
+  } else {
+    toggleVolTrap(trapId, cb.checked);
+  }
+}
+
+function toggleVolTrap(trapId, isChecked) {
+  if (isChecked) selectedVolTraps.add(trapId);
+  else selectedVolTraps.delete(trapId);
+  updateVolMapFooter();
+}
+
+function proceedVolPickup() {
+  if (selectedVolTraps.size === 0) return;
+  document.getElementById('vol-pickup-summary').innerHTML = 'בחרת <strong>' + selectedVolTraps.size + '</strong> מלכודות (שקיות) לפינוי מהשטח.';
+  document.getElementById('vol-pickup-datetime').value = new Date().toISOString().split('T')[0];
+  openOverlay('vol-pickup-final');
+}
+
+function setHangMode(mode, btn) {
+  document.getElementById('vol-hang-existing').style.display = mode === 'existing' ? 'block' : 'none';
+  document.getElementById('vol-hang-new').style.display = mode === 'new' ? 'block' : 'none';
+  btn.closest('.sev-group').querySelectorAll('.sev-btn').forEach(b => b.classList.remove('sel-low'));
+  btn.classList.add('sel-low');
+}
+
+function openVolunteerForm(type) {
+  closeOverlay('vol-type');
+  if (type === 'hang') {
+    const select = document.getElementById('vol-hang-station-select');
+    select.innerHTML = '<option value="">בחר עמדה...</option>' + db.stations.filter(s=>s.status==='active').map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    document.getElementById('vol-hang-datetime').value = new Date().toISOString().split('T')[0];
+    setHangMode('existing', document.querySelector('#overlay-vol-hang .sev-btn'));
+    openOverlay('vol-hang');
+  }
+}
+
+async function saveVolPickup() {
+  const name = document.getElementById('vol-pickup-name').value.trim();
+  const date = document.getElementById('vol-pickup-datetime').value;
+  const note = document.getElementById('vol-pickup-note').value.trim();
+  const selected = Array.from(selectedVolTraps);
+
+  if (!name || !date || selected.length === 0) { showToast('⚠️ נא למלא שם ותאריך'); return; }
+
+  const btn = document.getElementById('vol-pickup-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading-spin"></span> רושם התנדבות...';
+
+  await postData({
+      rowType: 'volunteer', id: 'V'+Date.now(), name: "פינוי מלכודות: " + selected.length + (note ? " | " + note : ""),
+      reporter: name, extra: date, parentId: selected.join(','), status: 'בתהליך', severity: 'pickup'
+  });
+
+  showToast('✅ תודה רבה! התנדבותך נרשמה.');
+  closeOverlay('vol-pickup-final');
+  exitVolMapMode();
+  btn.disabled = false; btn.innerHTML = '🗑️ אשר התנדבות';
+  loadData();
+}
+
+async function saveVolHang() {
+  const name = document.getElementById('vol-hang-name').value.trim();
+  const date = document.getElementById('vol-hang-datetime').value;
+  const note = document.getElementById('vol-hang-note').value.trim();
+  const mode = document.getElementById('vol-hang-existing').style.display === 'block' ? 'existing' : 'new';
+
+  let stationId = '';
+  let stationName = '';
+
+  if (mode === 'existing') {
+      stationId = document.getElementById('vol-hang-station-select').value;
+      if (!stationId) { showToast('⚠️ נא לבחור עמדה להתנדבות'); return; }
+  } else {
+      stationName = document.getElementById('vol-hang-new-name').value.trim();
+      if (!stationName) { showToast('⚠️ נא להכניס שם לעמדה החדשה'); return; }
+      stationId = 'NEW|||' + stationName; 
+  }
+
+  if (!name || !date) { showToast('⚠️ נא למלא שם ותאריך'); return; }
+
+  const btn = document.getElementById('vol-hang-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading-spin"></span> רושם התנדבות...';
+
+  let actionName = mode === 'existing' 
+      ? `תליית מלכודת בעמדה: ${db.stations.find(s=>s.id === stationId)?.name || ''}` 
+      : `תליית מלכודת בעמדה חדשה: ${stationName}`;
+  
+  if (note) actionName += ` | ${note}`;
+
+  await postData({
+      rowType: 'volunteer', id: 'V'+Date.now(), name: actionName,
+      reporter: name, extra: date, parentId: stationId, status: 'בתהליך', severity: 'hang'
+  });
+
+  showToast('✅ תודה רבה! התנדבותך נרשמה.');
+  closeOverlay('vol-hang');
+  btn.disabled = false; btn.innerHTML = '🪤 אני מתנדב לתלות';
+  loadData();
+}
+
+function renderVolunteersList() {
+  const list = document.getElementById('volunteers-list');
+  if(!db.volunteers.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">🙋</div><div>אין התנדבויות עדיין. מי יהיה הראשון?</div></div>';
+    return;
+  }
+  
+  const sortedVolunteers = [...db.volunteers].sort((a,b) => (a.status === 'בוצע' ? 1 : 0) - (b.status === 'בוצע' ? 1 : 0));
+  
+  list.innerHTML = sortedVolunteers.map(v => {
+    const isDone = v.status === 'בוצע';
+    const dimClass = isDone ? 'vol-completed' : '';
+    
+    // בונה את פירוט השקיות/עמדות עבור הכרטיסייה
+    let detailsHtml = '';
+    if (v.severity === 'pickup' && v.parentId) {
+       const tIds = v.parentId.split(',');
+       const traps = tIds.map(tid => db.traps.find(t => t.id === tid)).filter(Boolean);
+       if(traps.length > 0) {
+          detailsHtml = `<div style="margin-top:8px; padding:10px; background:var(--bg); border-radius:8px; font-size:12px; color:var(--text2); border:1px solid var(--border)">
+            <strong style="color:var(--text)">${traps.length} שקיות לפינוי:</strong><br>
+            <div style="margin-top:4px; line-height:1.6">
+              ${traps.map(t => {
+                 const s = db.stations.find(st => st.id === t.stationId);
+                 const sName = s ? s.name : 'כללי';
+                 return `• ${t.name} <span style="color:var(--muted)">(${sName})</span>`;
+              }).join('<br>')}
+            </div>
+          </div>`;
+       }
+    } else if (v.severity === 'hang' && v.parentId) {
+       let sName = '';
+       if(v.parentId.startsWith('NEW|||')) sName = v.parentId.split('|||')[1] + ' (עמדה חדשה)';
+       else {
+           const s = db.stations.find(st => st.id === v.parentId);
+           sName = s ? s.name : 'עמדה לא ידועה';
+       }
+       detailsHtml = `<div style="margin-top:8px; padding:8px; background:var(--bg); border-radius:8px; font-size:12px; color:var(--text2)">
+          <strong>עמדה מיועדת:</strong> ${sName}
+       </div>`;
+    }
+
+    const safeDesc = v.name.replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+
+    return `
+    <div class="gcard ${dimClass}" style="padding:15px">
+      <div style="font-size:12px;color:var(--accent);font-weight:900;text-transform:uppercase">${v.severity === 'pickup' ? '🗑️ פינוי מלכודות' : '🪤 תליית מלכודת'}</div>
+      <div style="font-size:16px;font-weight:700;margin:4px 0">${v.reporter}</div>
+      <div style="font-size:13px;color:var(--text2)">${v.name}</div>
+      ${detailsHtml}
+      <div style="font-size:11px;color:var(--muted);margin:8px 0">מתוכנן ל: ${new Date(v.extra || v.date).toLocaleDateString('he-IL')}</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
+        ${!isDone ? 
+          `<button class="btn btn-green" style="padding:8px;font-size:13px;margin:0" data-action="complete-vol" data-vol-id="${v.id}" data-vol-desc="${safeDesc}">סימנתי שביצעתי ✅</button>` 
+          : `<div style="font-weight:bold; color:var(--live); flex:1; font-size:13px;">✅ משימה בוצעה</div>`
+        }
+        <button class="btn btn-red" style="padding:8px;font-size:13px;flex:0 0 auto;width:auto;margin:0;background:transparent;border:1px solid var(--danger);color:var(--danger)" data-action="delete-vol" data-vol-id="${v.id}">🗑️ מחיקה</button>
+      </div>
+    </div>
+  `}).join('');
+}
+
+let currentVolId = null;
+function openVolComplete(id, desc) {
+  currentVolId = id;
+  document.getElementById('vol-complete-desc').textContent = desc;
+  document.getElementById('volc-photo-ph').style.display = 'block';
+  document.getElementById('volc-photo-prev').style.display = 'none';
+  if(window._photoData) delete window._photoData['volc'];
+  document.getElementById('vol-complete-note').value = '';
+  openOverlay('vol-complete');
+}
+
+async function confirmVolComplete() {
+  const btn = document.getElementById('vol-complete-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading-spin"></span> מעדכן מערכת...';
+
+  const note = document.getElementById('vol-complete-note').value.trim();
+  const photoBase64 = (window._photoData && window._photoData['volc']) || '';
+  if(window._photoData) delete window._photoData['volc'];
+
+  const vol = db.volunteers.find(v => v.id === currentVolId);
+  if (vol) vol.status = 'בוצע'; // עדכון מקומי מהיר
+  renderVolunteersList();
+  
+  let finalPhotoUrl = '';
+  if (photoBase64 && photoBase64.length > 100) {
+      showToast('⏳ מעלה תמונה לענן...');
+      const dateStr = new Date().toLocaleDateString('he-IL');
+      finalPhotoUrl = await uploadToCloudinary(photoBase64, 'התנדבות', dateStr);
+  }
+
+  await postData({
+      rowType: 'volunteerStatus', id: currentVolId, parentId:'', name:'', lat:'', lng:'', severity:'', status: 'בוצע', note: note, photoUrl: finalPhotoUrl, reporter:'', extra:''
+  });
+
+  if (vol && vol.severity === 'pickup' && vol.parentId) {
+      const trapIds = vol.parentId.split(',');
+      for(const tid of trapIds) {
+          await postData({rowType:'trapStatus', id:tid, parentId:'', name:'', lat:'', lng:'', severity:'done', note:note||'פונתה ע"י מתנדב', photoUrl:finalPhotoUrl, reporter:vol.reporter, status:'done', extra:''});
+      }
+  } else if (vol && vol.severity === 'hang' && vol.parentId) {
+      let stationId = vol.parentId;
+      let stationName = '';
+      
+      if (stationId.startsWith('NEW|||')) {
+          stationName = stationId.split('|||')[1];
+          stationId = 'ST' + Date.now();
+          await postData({rowType:'station', id:stationId, parentId:'', name:stationName, lat:'', lng:'', severity:'', note:'נוצרה מהתנדבות', photoUrl:'', reporter:vol.reporter, status:'active', extra:''});
+      } else {
+          stationName = db.stations.find(s => s.id === stationId)?.name || 'כללי';
+      }
+
+      const dateStrForName = new Date().toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit'});
+      const newTrapName = `${stationName} ${dateStrForName}`;
+      
+      await postData({
+          rowType: 'trap', id: 'TR'+Date.now(), parentId: stationId,
+          name: newTrapName, severity: 'low', reporter: vol.reporter,
+          status: 'active', extra: new Date().toISOString().split('T')[0], photoUrl: finalPhotoUrl,
+          stationName: stationName
+      });
+  }
+
+  showToast('✅ כל הכבוד! הפעולה בוצעה והמערכת עודכנה.');
+  closeOverlay('vol-complete');
+  btn.disabled = false; btn.innerHTML = '✅ בוצע!';
+  loadData();
+}
+
+async function permanentDeleteVol(id) {
+  showConfirm('⚠️ מחיקת התנדבות', 'האם למחוק התנדבות זו לצמיתות מיומן הרישום?', async () => {
+    // עדכון חזותי מיידי במסך
+    db.volunteers = db.volunteers.filter(v => v.id !== id);
+    renderVolunteersList();
+    
+    await permanentDelete('volunteers', id);
+    showToast('🗑️ התנדבות נמחקה');
+    setTimeout(loadData, 1000);
+  });
+}
+
+// ── CORE FUNCTIONS ──
 function openAddStation(){openOverlay('add-station');}
 async function saveStation(){
   const name=document.getElementById('ns-name').value.trim();
@@ -696,6 +1213,7 @@ function openAddUpdate(trapId,trapName){
   document.getElementById('au-trap-name').textContent='🪤 '+trapName;
   document.getElementById('au-note').value='';document.getElementById('au-reporter').value='';
   document.getElementById('au-photo-ph').style.display='';document.getElementById('au-photo-prev').style.display='none';
+  document.getElementById('au-analyze-btn').style.display='none';
   formSev['au']=null;document.querySelectorAll('#overlay-add-update .sev-btn').forEach(b=>b.className='sev-btn');
   openOverlay('add-update');
 }
@@ -726,9 +1244,11 @@ async function saveReport(){
   if(!loc){showToast('⚠️ נא לבחור מיקום');return;}
   if(!reporter){showToast('⚠️ נא להכניס שמך');return;}
   const btn=document.getElementById('rep-save-btn');btn.disabled=true;btn.innerHTML='<span class="loading-spin"></span>שולח...';
-  await postData({rowType:'report',id:'RP'+Date.now(),parentId:'',name:'',lat:loc.lat,lng:loc.lng,severity:sev2,note,photoUrl:'',reporter,status:'',extra:sev});
+  const photoBase64Rep=(window._photoData&&window._photoData['rep'])||'';if(window._photoData)delete window._photoData['rep'];
+  await postData({rowType:'report',id:'RP'+Date.now(),parentId:'',name:'',lat:loc.lat,lng:loc.lng,severity:sev2,note,photoBase64:photoBase64Rep,reporter,status:'',extra:sev});
   showToast('✅ דיווח נשלח!');closeOverlay('report');
   document.getElementById('rep-reporter').value='';document.getElementById('rep-note').value='';pinData['rep']=null;
+  document.getElementById('rep-photo-prev').style.display='none'; document.getElementById('report-ai-btn').style.display='none';
   btn.disabled=false;btn.textContent='🚨 שלח דיווח';setTimeout(loadData,1500);
 }
 
@@ -742,9 +1262,9 @@ function openManageStation(){
 async function toggleStationStatus(action){
   if(action==='delete'){
     const station=db.stations.find(s=>s.id===currentStationId);
-    showConfirm('🗑️ מחיקת עמדה',`למחוק את "${station?station.name:'העמדה'}"?`,async()=>{
+    showConfirm('🗑️ הסתרת עמדה',`להסתיר את "${station?station.name:'העמדה'}"?`,async()=>{
       await postData({rowType:'stationStatus',id:currentStationId,parentId:'',name:'',lat:'',lng:'',severity:'',note:'',photoUrl:'',reporter:'',status:'deleted',extra:''});
-      closeOverlay('station-options');closeOverlay('station');showToast('🗑️ עמדה נמחקה');setTimeout(loadData,1500);
+      closeOverlay('station-options');closeOverlay('station');showToast('🗑️ עמדה הוסתרה');setTimeout(loadData,1500);
     });return;
   }
   const newStatus=action==='suspend'?'suspended':'active';
@@ -753,20 +1273,28 @@ async function toggleStationStatus(action){
   showToast(action==='suspend'?'⏸️ עמדה הושהתה':'✅ עמדה הופעלה');setTimeout(loadData,1500);
 }
 
-async function deleteTrap(trapId,trapName){
-  showConfirm('🗑️ מחיקת מלכודת',`למחוק את "${trapName}"?
-בחר שיטה:`,async()=>{
-    await permanentDeleteTrap(trapId, trapName);
-  });
+function deleteTrapChoice(choice){
+  closeOverlay('delete-trap-choice');
+  if(choice==='trash'){
+    saveUpdateForTrash();
+  }else{
+    showConfirm('⚠️ מחיקה לצמיתות', `למחוק לצמיתות? לא ניתן לשחזר!`, async()=>{
+      await permanentDeleteTrap(currentTrapId, 'מלכודת');
+    });
+  }
+}
+async function saveUpdateForTrash(){
+  const trap=db.traps.find(t=>t.id===currentTrapId);
+  if(!trap)return;
+  showToast('⏳ מעדכן סטטוס...');
+  await postData({rowType:'trapStatus',id:currentTrapId,parentId:'',name:'',lat:'',lng:'',severity:'done',note:'הושלכה לפח',photoUrl:'',reporter:'מערכת',status:'done',extra:''});
+  setTimeout(()=>{loadData();setTimeout(()=>openStationSite(currentStationId),1600);},200);
 }
 
 // ── PERMANENT DELETE FUNCTIONS ──
 async function permanentDelete(sheetName, rowId) {
-  await fetch(SCRIPT_URL, {
-    method: 'POST', mode: 'no-cors',
-    headers: {'Content-Type': 'text/plain'},
-    body: JSON.stringify({rowType: 'deleteRow', sheet: sheetName, id: rowId})
-  });
+  const url = `${SCRIPT_URL}?action=deleteRow&sheet=${sheetName}&id=${rowId}&t=${Date.now()}`;
+  await fetch(url, { method: 'GET', mode: 'no-cors' });
 }
 
 async function permanentDeleteTrap(trapId, trapName) {
@@ -833,7 +1361,6 @@ async function uploadToCloudinary(base64Data, trapName, dateStr) {
     const data = await res.json();
     if (!data.public_id) return '';
 
-    // Build URL with text overlay via Cloudinary transformations
     const label = encodeURIComponent((trapName||'מלכודת') + ' | ' + (dateStr||new Date().toLocaleDateString('he-IL')));
     const url = `https://res.cloudinary.com/${CLOUDINARY_CLOUD}/image/upload/l_text:Arial_28_bold:${label},co_white,g_south_west,x_10,y_10,bo_5px_solid_black/${data.public_id}.jpg`;
     console.log('Cloudinary upload:', url);
@@ -847,41 +1374,20 @@ async function uploadToCloudinary(base64Data, trapName, dateStr) {
 async function postData(data) {
   try {
     const photoBase64 = data.photoBase64 || '';
-
-    // Build clean payload manually
     const payload = {
-      rowType: data.rowType,
-      id: data.id,
-      parentId: data.parentId,
-      name: data.name,
-      lat: data.lat,
-      lng: data.lng,
-      severity: data.severity,
-      note: data.note,
-      reporter: data.reporter,
-      status: data.status,
-      extra: data.extra,
-      trapDate: data.trapDate,
-      stationName: data.stationName,
-      photoUrl: data.photoUrl || ''
+      rowType: data.rowType, id: data.id, parentId: data.parentId, name: data.name, lat: data.lat, lng: data.lng, severity: data.severity, note: data.note, reporter: data.reporter, status: data.status, extra: data.extra, trapDate: data.trapDate, stationName: data.stationName, photoUrl: data.photoUrl || ''
     };
-
-    // Upload photo to Cloudinary first
     if (photoBase64 && photoBase64.length > 100) {
       console.log('Uploading photo to Cloudinary...');
-      showToast('⏳ מעלה תמונה...');
+      showToast('⏳ מעלה תמונה לענן...');
       const dateStr = new Date().toLocaleDateString('he-IL');
       payload.photoUrl = await uploadToCloudinary(photoBase64, data.name || data.stationName, dateStr);
       console.log('Photo uploaded:', payload.photoUrl);
     }
-
     const body = JSON.stringify(payload);
-    console.log('Sending data:', Math.round(body.length/1024), 'KB, type:', payload.rowType, 'photoUrl:', payload.photoUrl ? 'YES' : 'NO');
+    console.log('Sending data type:', payload.rowType);
     await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'text/plain'},
-      body: body
+      method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain'}, body: body
     });
     console.log('POST sent');
   } catch(e) { console.log('Post error:', e); }
@@ -928,7 +1434,6 @@ function handlePhoto(prefix,input){
   reader.onload=e=>{
     const prev=document.getElementById(prefix+'-photo-prev');
     const ph=document.getElementById(prefix+'-photo-ph');
-    // Compress image before storing
     const img=new Image();
     img.onload=()=>{
       const canvas=document.createElement('canvas');
@@ -942,6 +1447,16 @@ function handlePhoto(prefix,input){
       if(ph)ph.style.display='none';
       if(!window._photoData)window._photoData={};
       window._photoData[prefix]=compressed;
+      
+      if(prefix === 'au') {
+          const aiBtn = document.getElementById('au-analyze-btn');
+          if(aiBtn) aiBtn.style.display = 'flex';
+      }
+      if(prefix === 'rep') {
+          const aiBtn = document.getElementById('report-ai-btn');
+          if(aiBtn) aiBtn.style.display = 'flex';
+      }
+      
       console.log('Photo compressed:',Math.round(compressed.length/1024),'KB');
     };
     img.src=e.target.result;
@@ -966,12 +1481,17 @@ document.addEventListener('click',e=>{if(e.target.classList.contains('overlay'))
 
 document.addEventListener('click',e=>{
   const btn=e.target.closest('[data-action]');if(!btn)return;
-  const action=btn.dataset.action;const trapId=btn.dataset.trapId;const trapName=btn.dataset.trapName;
+  const action=btn.dataset.action;
+  const trapId=btn.dataset.trapId;
+  const trapName=btn.dataset.trapName;
+  
   if(action==='add-update'){e.stopPropagation();openAddUpdate(trapId,trapName);}
-  if(action==='delete-trap'){e.stopPropagation();deleteTrap(trapId,trapName);}
+  if(action==='delete-trap-choice'){e.stopPropagation();currentTrapId=trapId;document.getElementById('dtc-trap-name').textContent=trapName;openOverlay('delete-trap-choice');}
   if(action==='delete-trap-permanent'){e.stopPropagation();permanentDeleteTrap(trapId,trapName);}
-  if(action==='restore-trap'){e.stopPropagation();restoreTrap(btn.dataset.trapId,btn.dataset.trapName);}
+  if(action==='restore-trap'){e.stopPropagation();restoreTrap(trapId,trapName);}
   if(action==='delete-update'){e.stopPropagation();deleteUpdate(btn.dataset.updateId);}
+  if(action==='complete-vol'){e.stopPropagation();openVolComplete(btn.dataset.volId, btn.dataset.volDesc);}
+  if(action==='delete-vol'){e.stopPropagation();permanentDeleteVol(btn.dataset.volId);}
 });
 
 function showConfirm(title,msg,cb){document.getElementById('confirm-title').textContent=title;document.getElementById('confirm-msg').textContent=msg;confirmCallback=cb;openOverlay('confirm');}
@@ -998,15 +1518,11 @@ function openLightbox(src, caption) {
 function closeLightbox() {
   document.getElementById('photo-lightbox').style.display = 'none';
 }
-
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(msg.includes('✅'))haptic('success');setTimeout(()=>t.classList.remove('show'),2500);}
 
 window.addEventListener('load',()=>{
-  // Light mode as default
   const saved = localStorage.getItem('theme');
-  if(saved === 'dark'){
-    // keep dark
-  } else {
+  if(saved === 'dark'){ /* keep dark */ } else {
     document.body.classList.add('light');
     document.getElementById('theme-btn').textContent='☀️';
   }
