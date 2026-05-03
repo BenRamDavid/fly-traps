@@ -414,8 +414,9 @@ textarea.fi{resize:vertical;min-height:70px}
     <div class="handle"></div>
     <div class="sheet-title" id="so-title">אפשרויות עמדה</div>
     <button class="btn btn-yellow" onclick="toggleStationStatus('suspend')">⏸️ השהה עמדה</button>
-    <button class="btn btn-red" onclick="toggleStationStatus('delete')">🗑️ מחק עמדה</button>
     <button class="btn btn-green" style="display:none" id="so-activate-btn" onclick="toggleStationStatus('activate')">✅ הפעל מחדש</button>
+    <button class="btn btn-red" onclick="toggleStationStatus('delete')">🗑️ מחק עמדה (סמן)</button>
+    <button class="btn btn-red" style="background:#7f1d1d;margin-top:4px" onclick="permanentDeleteStation(currentStationId)">🗑️ מחק לצמיתות מה-Sheets</button>
     <button class="btn btn-grey" onclick="closeOverlay('station-options')">ביטול</button>
   </div>
 </div>
@@ -697,10 +698,9 @@ async function toggleStationStatus(action){
 }
 
 async function deleteTrap(trapId,trapName){
-  showConfirm('🗑️ מחיקת מלכודת',`למחוק את "${trapName}"?`,async()=>{
-    await postData({rowType:'trapStatus',id:trapId,parentId:'',name:'',lat:'',lng:'',severity:'',note:'',photoUrl:'',reporter:'מחיקה',status:'deleted',extra:''});
-    showToast('🗑️ מלכודת נמחקה');
-    setTimeout(()=>{loadData();setTimeout(()=>openStationSite(currentStationId),1600);},200);
+  showConfirm('🗑️ מחיקת מלכודת',`למחוק את "${trapName}"?
+בחר שיטה:`,async()=>{
+    await permanentDeleteTrap(trapId, trapName);
   });
 }
 
@@ -855,6 +855,8 @@ document.addEventListener('click',e=>{
   const action=btn.dataset.action;const trapId=btn.dataset.trapId;const trapName=btn.dataset.trapName;
   if(action==='add-update'){e.stopPropagation();openAddUpdate(trapId,trapName);}
   if(action==='delete-trap'){e.stopPropagation();deleteTrap(trapId,trapName);}
+  if(action==='delete-trap-permanent'){e.stopPropagation();permanentDeleteTrap(trapId,trapName);}
+  if(action==='restore-trap'){e.stopPropagation();restoreTrap(btn.dataset.trapId,btn.dataset.trapName);}
   if(action==='delete-update'){e.stopPropagation();deleteUpdate(btn.dataset.updateId);}
 });
 
