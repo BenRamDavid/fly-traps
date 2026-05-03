@@ -704,19 +704,52 @@ async function deleteTrap(trapId,trapName){
   });
 }
 
-async function postData(data){
-  try{
-    // Use no-cors for small payloads, form trick for large
-    const body=JSON.stringify(data);
-    console.log('Sending payload size:',Math.round(body.length/1024),'KB, type:',data.rowType);
-    await fetch(SCRIPT_URL,{
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'text/plain'},
-      body:body
+const CLOUDINARY_CLOUD = 'dd1qiuokr';
+const CLOUDINARY_PRESET = 'ml_default';
+
+async function uploadToCloudinary(base64Data) {
+  try {
+    const formData = new FormData();
+    formData.append('file', base64Data);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,
+      { method: 'POST', body: formData }
+    );
+    const data = await res.json();
+    console.log('Cloudinary upload:', data.secure_url);
+    return data.secure_url || '';
+  } catch(e) {
+    console.log('Cloudinary error:', e);
+    return '';
+  }
+}
+
+async function postData(data) {
+  try {
+    const photoBase64 = data.photoBase64 || '';
+    const payload = {...data};
+    delete payload.photoBase64;
+
+    // Upload photo to Cloudinary first if exists
+    if (photoBase64 && photoBase64.length > 100) {
+      console.log('Uploading photo to Cloudinary...');
+      showToast('⏳ מעלה תמונה...');
+      payload.photoUrl = await uploadToCloudinary(photoBase64);
+      if (payload.photoUrl) console.log('Photo uploaded:', payload.photoUrl);
+    }
+
+    // Send data to Apps Script
+    const body = JSON.stringify(payload);
+    console.log('Sending data:', Math.round(body.length/1024), 'KB, type:', payload.rowType);
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'text/plain'},
+      body: body
     });
     console.log('POST sent');
-  }catch(e){console.log('Post error:',e);}
+  } catch(e) { console.log('Post error:', e); }
 }
 
 function getGPS(prefix){
