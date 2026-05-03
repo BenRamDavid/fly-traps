@@ -728,20 +728,35 @@ async function uploadToCloudinary(base64Data) {
 async function postData(data) {
   try {
     const photoBase64 = data.photoBase64 || '';
-    const payload = {...data};
-    delete payload.photoBase64;
 
-    // Upload photo to Cloudinary first if exists
+    // Build clean payload manually
+    const payload = {
+      rowType: data.rowType,
+      id: data.id,
+      parentId: data.parentId,
+      name: data.name,
+      lat: data.lat,
+      lng: data.lng,
+      severity: data.severity,
+      note: data.note,
+      reporter: data.reporter,
+      status: data.status,
+      extra: data.extra,
+      trapDate: data.trapDate,
+      stationName: data.stationName,
+      photoUrl: data.photoUrl || ''
+    };
+
+    // Upload photo to Cloudinary first
     if (photoBase64 && photoBase64.length > 100) {
       console.log('Uploading photo to Cloudinary...');
       showToast('⏳ מעלה תמונה...');
       payload.photoUrl = await uploadToCloudinary(photoBase64);
-      if (payload.photoUrl) console.log('Photo uploaded:', payload.photoUrl);
+      console.log('Photo uploaded:', payload.photoUrl);
     }
 
-    // Send data to Apps Script
     const body = JSON.stringify(payload);
-    console.log('Sending data:', Math.round(body.length/1024), 'KB, type:', payload.rowType);
+    console.log('Sending data:', Math.round(body.length/1024), 'KB, type:', payload.rowType, 'photoUrl:', payload.photoUrl ? 'YES' : 'NO');
     await fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
