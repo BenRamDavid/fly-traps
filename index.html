@@ -429,8 +429,8 @@ textarea.fi{resize:vertical;min-height:70px}
     <div class="sheet-title" id="so-title">אפשרויות עמדה</div>
     <button class="btn btn-yellow" onclick="toggleStationStatus('suspend')">⏸️ השהה עמדה</button>
     <button class="btn btn-green" style="display:none" id="so-activate-btn" onclick="toggleStationStatus('activate')">✅ הפעל מחדש</button>
-    <button class="btn btn-red" onclick="toggleStationStatus('delete')">🗑️ מחק עמדה (סמן)</button>
-    <button class="btn btn-red" style="background:#7f1d1d;margin-top:4px" onclick="permanentDeleteStation(currentStationId)">🗑️ מחק לצמיתות מה-Sheets</button>
+    <button class="btn btn-red" onclick="toggleStationStatus('delete')">🗑️ הסתר עמדה</button>
+    <button class="btn btn-red" style="background:#7f1d1d;margin-top:4px" onclick="confirmPermanentDeleteStation()">⚠️ מחק לצמיתות — לא ניתן לשחזר!</button>
     <button class="btn btn-grey" onclick="closeOverlay('station-options')">ביטול</button>
   </div>
 </div>
@@ -459,7 +459,7 @@ textarea.fi{resize:vertical;min-height:70px}
     <div class="sheet-title">🗑️ מחיקת מלכודת</div>
     <div style="font-size:14px;color:var(--muted);margin-bottom:16px" id="dtc-trap-name"></div>
     <button class="btn btn-yellow" onclick="deleteTrapChoice('trash')">✅ פונתה לאשפה — שמור בהיסטוריה</button>
-    <button class="btn btn-red" onclick="deleteTrapChoice('permanent')" style="margin-top:8px">🗑️ מחק לצמיתות — הסר מהסיסטם</button>
+    <button class="btn btn-red" onclick="deleteTrapChoice('permanent')" style="margin-top:8px;background:#7f1d1d">⚠️ מחק לצמיתות — לא ניתן לשחזר!</button>
     <button class="btn btn-grey" onclick="closeOverlay('delete-trap-choice')">ביטול</button>
   </div>
 </div>
@@ -757,6 +757,64 @@ async function deleteTrap(trapId,trapName){
   showConfirm('🗑️ מחיקת מלכודת',`למחוק את "${trapName}"?
 בחר שיטה:`,async()=>{
     await permanentDeleteTrap(trapId, trapName);
+  });
+}
+
+// ── PERMANENT DELETE FUNCTIONS ──
+async function permanentDelete(sheetName, rowId) {
+  await fetch(SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify({rowType: 'deleteRow', sheet: sheetName, id: rowId})
+  });
+}
+
+async function permanentDeleteTrap(trapId, trapName) {
+  await permanentDelete('traps', trapId);
+  const updates = db.updates.filter(u => u.trapId === trapId);
+  for (const u of updates) await permanentDelete('updates', u.id);
+  showToast('🗑️ נמחק לצמיתות');
+  setTimeout(() => { loadData(); setTimeout(() => openStationSite(currentStationId), 1600); }, 200);
+}
+
+function confirmPermanentDeleteStation() {
+  const station = db.stations.find(s => s.id === currentStationId);
+  showConfirm('⚠️ מחיקה לצמיתות', `למחוק את "${station?.name}" + כל המלכודות לצמיתות? פעולה זו אינה הפיכה!`, async () => {
+    await permanentDeleteStation(currentStationId);
+  });
+}
+
+async function permanentDeleteStation(stationId) {
+  await permanentDelete('stations', stationId);
+  const traps = db.traps.filter(t => t.stationId === stationId);
+  for (const t of traps) {
+    await permanentDelete('traps', t.id);
+    const updates = db.updates.filter(u => u.trapId === t.id);
+    for (const u of updates) await permanentDelete('updates', u.id);
+  }
+  closeOverlay('station-options');
+  closeOverlay('station');
+  showToast('🗑️ עמדה נמחקה לצמיתות');
+  setTimeout(loadData, 1500);
+}
+
+async function restoreTrap(trapId, trapName) {
+  showConfirm('♻️ שחזור מלכודת', `לשחזר את "${trapName}" כפעילה?`, async () => {
+    await fetch(SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({rowType:'trapStatus', id:trapId, parentId:'', name:'', lat:'', lng:'', severity:'', note:'', photoUrl:'', reporter:'שחזור', status:'active', extra:''})
+    });
+    showToast('♻️ מלכודת שוחזרה!');
+    setTimeout(() => { loadData(); setTimeout(() => openStationSite(currentStationId), 1600); }, 200);
+  });
+}
+
+async function deleteUpdate(updateId) {
+  showConfirm('🗑️ מחיקת עדכון', 'למחוק את העדכון לצמיתות?', async () => {
+    await permanentDelete('updates', updateId);
+    showToast('🗑️ עדכון נמחק');
+    setTimeout(() => { loadData(); setTimeout(() => openStationSite(currentStationId), 1600); }, 200);
   });
 }
 
