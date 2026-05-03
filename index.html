@@ -707,7 +707,7 @@ async function deleteTrap(trapId,trapName){
 const CLOUDINARY_CLOUD = 'dd1qiuokr';
 const CLOUDINARY_PRESET = 'ml_default';
 
-async function uploadToCloudinary(base64Data) {
+async function uploadToCloudinary(base64Data, trapName, dateStr) {
   try {
     const formData = new FormData();
     formData.append('file', base64Data);
@@ -717,8 +717,13 @@ async function uploadToCloudinary(base64Data) {
       { method: 'POST', body: formData }
     );
     const data = await res.json();
-    console.log('Cloudinary upload:', data.secure_url);
-    return data.secure_url || '';
+    if (!data.public_id) return '';
+
+    // Build URL with text overlay via Cloudinary transformations
+    const label = encodeURIComponent((trapName||'מלכודת') + ' | ' + (dateStr||new Date().toLocaleDateString('he-IL')));
+    const url = `https://res.cloudinary.com/${CLOUDINARY_CLOUD}/image/upload/l_text:Arial_28_bold:${label},co_white,g_south_west,x_10,y_10,bo_5px_solid_black/${data.public_id}.jpg`;
+    console.log('Cloudinary upload:', url);
+    return url;
   } catch(e) {
     console.log('Cloudinary error:', e);
     return '';
@@ -751,7 +756,8 @@ async function postData(data) {
     if (photoBase64 && photoBase64.length > 100) {
       console.log('Uploading photo to Cloudinary...');
       showToast('⏳ מעלה תמונה...');
-      payload.photoUrl = await uploadToCloudinary(photoBase64);
+      const dateStr = new Date().toLocaleDateString('he-IL');
+      payload.photoUrl = await uploadToCloudinary(photoBase64, data.name || data.stationName, dateStr);
       console.log('Photo uploaded:', payload.photoUrl);
     }
 
@@ -849,6 +855,7 @@ document.addEventListener('click',e=>{
   const action=btn.dataset.action;const trapId=btn.dataset.trapId;const trapName=btn.dataset.trapName;
   if(action==='add-update'){e.stopPropagation();openAddUpdate(trapId,trapName);}
   if(action==='delete-trap'){e.stopPropagation();deleteTrap(trapId,trapName);}
+  if(action==='delete-update'){e.stopPropagation();deleteUpdate(btn.dataset.updateId);}
 });
 
 function showConfirm(title,msg,cb){document.getElementById('confirm-title').textContent=title;document.getElementById('confirm-msg').textContent=msg;confirmCallback=cb;openOverlay('confirm');}
