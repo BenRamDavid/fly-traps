@@ -704,7 +704,20 @@ async function deleteTrap(trapId,trapName){
   });
 }
 
-async function postData(data){try{await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});}catch(e){console.log('Post error:',e);}}
+async function postData(data){
+  try{
+    // Use no-cors for small payloads, form trick for large
+    const body=JSON.stringify(data);
+    console.log('Sending payload size:',Math.round(body.length/1024),'KB, type:',data.rowType);
+    await fetch(SCRIPT_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:body
+    });
+    console.log('POST sent');
+  }catch(e){console.log('Post error:',e);}
+}
 
 function getGPS(prefix){
   const btn=document.getElementById(prefix+'-gps-btn');const status=document.getElementById(prefix+'-loc-status');
@@ -747,11 +760,23 @@ function handlePhoto(prefix,input){
   reader.onload=e=>{
     const prev=document.getElementById(prefix+'-photo-prev');
     const ph=document.getElementById(prefix+'-photo-ph');
-    if(prev){prev.src=e.target.result;prev.style.display='block';}
-    if(ph)ph.style.display='none';
-    // Store base64 for upload
-    if(!window._photoData)window._photoData={};
-    window._photoData[prefix]=e.target.result;
+    // Compress image before storing
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const MAX=1200;
+      let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const compressed=canvas.toDataURL('image/jpeg',0.7);
+      if(prev){prev.src=compressed;prev.style.display='block';}
+      if(ph)ph.style.display='none';
+      if(!window._photoData)window._photoData={};
+      window._photoData[prefix]=compressed;
+      console.log('Photo compressed:',Math.round(compressed.length/1024),'KB');
+    };
+    img.src=e.target.result;
   };
   reader.readAsDataURL(file);
 }
