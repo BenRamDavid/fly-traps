@@ -717,6 +717,49 @@ function initMap(){
   loadData();
 }
 
+async function markReportDone(reportId) {
+  await fetch(SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify({rowType:'reportStatus', id:reportId, status:'done'})
+  });
+  map.closePopup();
+  showToast('✅ דיווח סומן כטופל');
+  setTimeout(loadData, 1500);
+}
+
+async function deleteReport(reportId) {
+  await permanentDelete('reports', reportId);
+  map.closePopup();
+  showToast('🗑️ דיווח נמחק');
+  setTimeout(loadData, 1500);
+}
+
+function locateMe() {
+  if (!navigator.geolocation) { showToast('⚠️ GPS לא זמין'); return; }
+  showToast('⏳ מאתר מיקום...');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    map.setView([lat, lng], 18);
+
+    // Remove old marker if exists
+    if (window._locMarker) map.removeLayer(window._locMarker);
+
+    // Add pulsing marker
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:16px;height:16px;border-radius:50%;background:#38bdf8;border:3px solid white;box-shadow:0 0 0 4px rgba(56,189,248,0.3),0 2px 8px rgba(0,0,0,0.4)"></div>`,
+      iconSize: [16,16], iconAnchor: [8,8]
+    });
+    window._locMarker = L.marker([lat, lng], {icon}).addTo(map);
+    window._locMarker.bindPopup('<div dir="rtl" style="font-family:Heebo,sans-serif">📍 המיקום שלי</div>').openPopup();
+    showToast('✅ מיקום נמצא');
+  }, () => {
+    showToast('❌ לא ניתן לאתר מיקום');
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
 function toggleLayer(name,btn){const lg=layerGroups[name];if(!lg)return;if(map.hasLayer(lg)){map.removeLayer(lg);btn.classList.add('off');}else{lg.addTo(map);btn.classList.remove('off');}}
 
 function loadData(){
@@ -731,7 +774,7 @@ function parseSheets(raw){
   db.stations=pr(raw.stations,r=>({id:String(r[2]),name:r[4],lat:parseFloat(r[5]),lng:parseFloat(r[6]),reporter:r[10],status:r[11]||'active',date:r[0]}));
   db.traps=pr(raw.traps,r=>({id:String(r[2]),stationId:String(r[3]),name:r[4],lat:parseFloat(r[5]),lng:parseFloat(r[6]),severity:r[7],note:r[8],photoUrl:r[9],reporter:r[10],status:r[11]||'active',date:r[0],extra:r[12]}));
   db.updates=pr(raw.updates,r=>({id:String(r[2]),trapId:String(r[3]),severity:r[7],note:r[8],photoUrl:r[9],reporter:r[10],date:r[0]}));
-  db.reports=pr(raw.reports,r=>({id:String(r[2]),lat:parseFloat(r[5]),lng:parseFloat(r[6]),severity:r[7],subtype:r[12],note:r[8],reporter:r[10],date:r[0]}));
+  db.reports=pr(raw.reports,r=>({id:String(r[2]),lat:parseFloat(r[5]),lng:parseFloat(r[6]),severity:r[7],subtype:r[12],note:r[8],reporter:r[10],status:r[11]||'active',date:r[0]}));
   db.volunteers=pr(raw.volunteers||[],r=>({id:String(r[2]),parentId:String(r[3]),name:r[4],severity:r[7],note:r[8],reporter:r[10],status:r[11]||'active',extra:r[12],date:r[0]}));
 }
 
@@ -758,7 +801,17 @@ function renderMap(){
   });
   db.reports.filter(r=>!isNaN(r.lat)).forEach(rep=>{
     const color=rep.severity==='high'?'#ef4444':rep.severity==='med'?'#f59e0b':'#10b981';
-    L.circleMarker([rep.lat,rep.lng],{radius:8,fillColor:color,color:'#fff',weight:2,fillOpacity:0.85}).addTo(layerGroups.reports).bindPopup(`<div dir="rtl" style="font-family:Heebo,sans-serif;min-width:130px"><strong>${rep.subtype==='bag'?'🛍️ שקית':'🚨 זבובים'}</strong><br><small>${new Date(rep.date).toLocaleDateString('he-IL')}</small>${rep.note?`<br><span style="font-size:12px">${rep.note}</span>`:''}${rep.reporter?`<br><small>👤 ${rep.reporter}</small>`:''}</div>`);
+    const repMarker = L.circleMarker([rep.lat,rep.lng],{radius:8,fillColor:color,color:'#fff',weight:2,fillOpacity:0.85}).addTo(layerGroups.reports);
+    repMarker.bindPopup(`<div dir="rtl" style="font-family:Heebo,sans-serif;min-width:160px">
+      <strong>${rep.subtype==='bag'?'🛍️ שקית':'🚨 זבובים'}</strong><br>
+      <small style="color:#888">${new Date(rep.date).toLocaleDateString('he-IL')}</small>
+      ${rep.note?`<br><span style="font-size:12px">${rep.note}</span>`:''}
+      ${rep.reporter?`<br><small>👤 ${rep.reporter}</small>`:''}
+      <br><div style="display:flex;gap:6px;margin-top:8px">
+        <button onclick="markReportDone('${rep.id}')" style="flex:1;padding:6px;background:#10b981;border:none;border-radius:6px;color:white;font-family:Heebo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">✅ טופל</button>
+        <button onclick="deleteReport('${rep.id}')" style="flex:1;padding:6px;background:#ef4444;border:none;border-radius:6px;color:white;font-family:Heebo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">🗑️ מחק</button>
+      </div>
+    </div>`);
   });
 }
 
