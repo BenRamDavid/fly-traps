@@ -241,10 +241,19 @@ textarea.fi{resize:vertical;min-height:70px}
       <button class="ctrl-btn" onclick="toggleLayer('volunteers',this)">🙋 מתנדבים</button>
     </div>
     <div class="map-fabs">
-      <button class="fab fab-add" onclick="openAddStation()">+</button>
-      <div>
-        <button class="fab fab-vol" onclick="openOverlay('vol-type')" style="margin-bottom: 10px;">🙋</button>
-        <button class="fab fab-report" onclick="openOverlay('report')">🚨</button>
+      <!-- שמאל: התנדב + דיווח -->
+      <div style="display:flex;gap:10px">
+        <button class="fab fab-vol" onclick="openOverlay('vol-type')" title="התנדב">🙋</button>
+        <button class="fab fab-report" onclick="openOverlay('report')" title="דווח מפגע">🚨</button>
+      </div>
+      <!-- ימין: מיקום + הוסף עמדה -->
+      <div style="display:flex;gap:10px">
+        <button onclick="locateMe()" id="locate-btn" style="width:52px;height:52px;border-radius:16px;border:none;background:white;box-shadow:0 4px 16px rgba(0,0,0,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0" title="המיקום שלי">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+          </svg>
+        </button>
+        <button class="fab fab-add" onclick="openAddStation()" title="הוסף עמדה">+</button>
       </div>
     </div>
     
@@ -282,6 +291,9 @@ textarea.fi{resize:vertical;min-height:70px}
       <div class="stat-box full"><div class="stat-lbl" style="margin-bottom:6px">🔥 אזור הכי עמוס</div><div class="stat-sub" id="d-hotspot">טוען...</div></div>
       <div class="stat-box full"><div class="stat-lbl" style="margin-bottom:8px">📅 עדכונים לפי חודש</div><div id="d-chart"></div></div>
     </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin:20px 0 10px">🚨 ארכיון דיווחים</div>
+    <div id="reports-history-list"></div>
   </div>
 </div>
 
@@ -455,6 +467,7 @@ textarea.fi{resize:vertical;min-height:70px}
     </div>
     <div class="fg"><label class="fl">הערה (אופציונלי)</label><textarea class="fi" id="rep-note" placeholder="תאר את הבעיה..."></textarea></div>
     <div class="fg"><label class="fl">שמך (חובה)</label><input class="fi" id="rep-reporter" placeholder="ישראל ישראלי"></div>
+    <div class="fg"><label class="fl">מייל לעדכון (אופציונלי)</label><input type="email" class="fi" id="rep-email" placeholder="example@gmail.com"><div style="font-size:11px;color:var(--muted);margin-top:4px">נשלח מייל אוטומטי כשהדיווח יטופל</div></div>
     <button class="btn btn-yellow" onclick="saveReport()" id="rep-save-btn">🚨 שלח דיווח</button>
     <button class="btn btn-grey" onclick="closeOverlay('report')">ביטול</button>
   </div>
@@ -723,9 +736,9 @@ async function markReportDone(reportId) {
     headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify({rowType:'reportStatus', id:reportId, status:'done'})
   });
-  map.closePopup();
+  if (map) map.closePopup();
   showToast('✅ דיווח סומן כטופל');
-  setTimeout(loadData, 1500);
+  setTimeout(() => { loadData(); if(document.getElementById('page-stats').classList.contains('active')) renderReportsHistory(); }, 1500);
 }
 
 async function deleteReport(reportId) {
@@ -774,7 +787,7 @@ function parseSheets(raw){
   db.stations=pr(raw.stations,r=>({id:String(r[2]),name:r[4],lat:parseFloat(r[5]),lng:parseFloat(r[6]),reporter:r[10],status:r[11]||'active',date:r[0]}));
   db.traps=pr(raw.traps,r=>({id:String(r[2]),stationId:String(r[3]),name:r[4],lat:parseFloat(r[5]),lng:parseFloat(r[6]),severity:r[7],note:r[8],photoUrl:r[9],reporter:r[10],status:r[11]||'active',date:r[0],extra:r[12]}));
   db.updates=pr(raw.updates,r=>({id:String(r[2]),trapId:String(r[3]),severity:r[7],note:r[8],photoUrl:r[9],reporter:r[10],date:r[0]}));
-  db.reports=pr(raw.reports,r=>({id:String(r[2]),lat:parseFloat(r[5]),lng:parseFloat(r[6]),severity:r[7],subtype:r[12],note:r[8],reporter:r[10],status:r[11]||'active',date:r[0]}));
+  db.reports=pr(raw.reports,r=>({id:String(r[2]),email:r[4],lat:parseFloat(r[5]),lng:parseFloat(r[6]),severity:r[7],subtype:r[12],note:r[8],reporter:r[10],status:r[11]||'active',date:r[0]}));
   db.volunteers=pr(raw.volunteers||[],r=>({id:String(r[2]),parentId:String(r[3]),name:r[4],severity:r[7],note:r[8],reporter:r[10],status:r[11]||'active',extra:r[12],date:r[0]}));
 }
 
@@ -799,7 +812,7 @@ function renderMap(){
         else openStationSite(station.id);
     });
   });
-  db.reports.filter(r=>!isNaN(r.lat)).forEach(rep=>{
+  db.reports.filter(r=>!isNaN(r.lat)&&r.status!=='done'&&r.status!=='deleted').forEach(rep=>{
     const color=rep.severity==='high'?'#ef4444':rep.severity==='med'?'#f59e0b':'#10b981';
     const repMarker = L.circleMarker([rep.lat,rep.lng],{radius:8,fillColor:color,color:'#fff',weight:2,fillOpacity:0.85}).addTo(layerGroups.reports);
     repMarker.bindPopup(`<div dir="rtl" style="font-family:Heebo,sans-serif;min-width:160px">
@@ -864,6 +877,39 @@ function renderStationsList(){
   }).join('');
 }
 
+function renderReportsHistory() {
+  const el = document.getElementById('reports-history-list');
+  if (!el) return;
+  const all = [...db.reports].reverse();
+  if (!all.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div>אין דיווחים</div></div>';
+    return;
+  }
+  const typeLabel = {flies:'🪰 זבובים', bag:'🛍️ שקית'};
+  const sevLabel = {low:'קל', med:'מציק', high:'בלתי נסבל'};
+  el.innerHTML = all.map(r => {
+    const isDone = r.status === 'done';
+    const dateStr = new Date(r.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<div class="gcard" style="${isDone?'opacity:0.55':''}">
+      <div class="gcard-body" style="display:flex;align-items:flex-start;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap">
+            <span style="font-size:13px;font-weight:700">${typeLabel[r.subtype]||'🚨 דיווח'}</span>
+            <span class="badge ${isDone?'bg-green':'bg-red'}">${isDone?'✅ טופל':'⚠️ פעיל'}</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted)">${sevLabel[r.severity]||''} ${r.reporter?'· '+r.reporter:''}</div>
+          ${r.note?`<div style="font-size:12px;color:var(--text2);margin-top:2px">${r.note}</div>`:''}
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">${dateStr}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+          ${!isDone?`<button onclick="markReportDone('${r.id}')" style="background:var(--live);border:none;border-radius:8px;padding:6px 10px;color:#0f172a;font-family:Heebo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">✅ טופל</button>`:''}
+          <button onclick="deleteReport('${r.id}')" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--danger);font-family:Heebo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderDashboard(){
   const active=db.stations.filter(s=>s.status==='active');
   const aT=db.traps.filter(t=>t.status==='active');
@@ -881,6 +927,7 @@ function renderDashboard(){
   [...db.traps,...db.updates].forEach(d=>{if(d.date)counts[new Date(d.date).getMonth()]++;});
   const max=Math.max(...counts,1);
   document.getElementById('d-chart').innerHTML=counts.map((c,i)=>`<div class="bar-row"><div class="bar-lbl">${months[i]}</div><div class="bar-track"><div class="bar-fill" style="width:${c/max*100}%"></div></div><div class="bar-val">${c||''}</div></div>`).join('');
+  renderReportsHistory();
 }
 
 // ── VOLUNTEER MAP & FUNCTIONS ──
@@ -1298,9 +1345,12 @@ async function saveReport(){
   if(!reporter){showToast('⚠️ נא להכניס שמך');return;}
   const btn=document.getElementById('rep-save-btn');btn.disabled=true;btn.innerHTML='<span class="loading-spin"></span>שולח...';
   const photoBase64Rep=(window._photoData&&window._photoData['rep'])||'';if(window._photoData)delete window._photoData['rep'];
-  await postData({rowType:'report',id:'RP'+Date.now(),parentId:'',name:'',lat:loc.lat,lng:loc.lng,severity:sev2,note,photoBase64:photoBase64Rep,reporter,status:'',extra:sev});
+  const repEmail=(document.getElementById('rep-email')?.value||'').trim();
+  await postData({rowType:'report',id:'RP'+Date.now(),parentId:'',name:repEmail,lat:loc.lat,lng:loc.lng,severity:sev2,note,photoBase64:photoBase64Rep,reporter,status:'',extra:sev});
   showToast('✅ דיווח נשלח!');closeOverlay('report');
-  document.getElementById('rep-reporter').value='';document.getElementById('rep-note').value='';pinData['rep']=null;
+  document.getElementById('rep-reporter').value='';document.getElementById('rep-note').value='';
+  if(document.getElementById('rep-email'))document.getElementById('rep-email').value='';
+  pinData['rep']=null;
   document.getElementById('rep-photo-prev').style.display='none'; document.getElementById('report-ai-btn').style.display='none';
   btn.disabled=false;btn.textContent='🚨 שלח דיווח';setTimeout(loadData,1500);
 }
